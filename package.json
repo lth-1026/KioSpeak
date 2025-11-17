@@ -1,0 +1,30 @@
+{
+  "name": "kiospeak",
+  "version": "1.0.0",
+  "description": "AI-powered kiosk speaking assistant",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lth-1026/KioSpeak.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lth-1026/KioSpeak/issues"
+  },
+  "homepage": "https://github.com/lth-1026/KioSpeak#readme",
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.2"
+  },
+  "dependencies": {
+    "face-api.js": "^0.22.2"
+  }
+}
