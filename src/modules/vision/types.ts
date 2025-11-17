@@ -53,3 +53,22 @@ export type VisionInput =
   | HTMLVideoElement
   | HTMLCanvasElement
   | ImageData;
+
+/**
+ * Person detection event data
+ */
+export interface PersonDetectedEvent {
+  detected: boolean;
+  age?: AgeEstimation;
+  detection?: FaceDetection;
+  timestamp: number;
+}
+
+/**
+ * Monitoring callbacks
+ */
+export interface MonitoringCallbacks {
+  onPersonDetected?: (event: PersonDetectedEvent) => void;
+  onPersonLost?: () => void;
+  onFrame?: (result: FaceAnalysisResult) => void;
+}

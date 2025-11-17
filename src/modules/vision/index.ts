@@ -10,4 +10,6 @@ export type {
   FaceAnalysisResult,
   VisionConfig,
   VisionInput,
+  PersonDetectedEvent,
+  MonitoringCallbacks,
 } from './types';
