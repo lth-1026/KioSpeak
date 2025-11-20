@@ -1,0 +1,36 @@
+{
+  "categories": [
+    {
+      "id": "burger",
+      "name": "버거",
+      "items": [
+        {
+          "id": "bulgogi_burger",
+          "name": "불고기 버거",
+          "price": 4000,
+          "has_set": true
+        },
+        {
+          "id": "hanwoo_burger",
+          "name": "한우 버거",
+          "price": 8000,
+          "has_set": true
+        }
+      ]
+    }
+  ],
+  "options": {
+    "set_choices": [
+      "세트",
+      "단품"
+    ],
+    "drinks": [
+      "콜라",
+      "사이다"
+    ],
+    "sides": [
+      "감자튀김",
+      "치즈스틱"
+    ]
+  }
+}
