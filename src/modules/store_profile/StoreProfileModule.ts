@@ -636,10 +636,13 @@ export class StoreProfileModule {
   /**
    * Get menu data formatted for LLM system prompt
    * (Maintains backward compatibility with Realtime.ts)
+   * @param options.committedOnly - If true, use only committed profile (ignore staged changes)
    */
-  getMenuForLLM(): object {
+  getMenuForLLM(options?: { committedOnly?: boolean }): object {
     this.ensureReady();
-    const profile = this.getWorkingProfile();
+    const profile = options?.committedOnly
+      ? this.currentProfile!
+      : this.getWorkingProfile();
 
     // Convert to the original menu.json format for LLM compatibility
     return {

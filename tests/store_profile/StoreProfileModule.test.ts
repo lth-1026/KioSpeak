@@ -535,6 +535,53 @@ describe('StoreProfileModule', () => {
         burgerCategory.items.find((i: any) => i.id === 'bulgogi-burger')
       ).toBeUndefined();
     });
+
+    it('should use working profile by default', async () => {
+      // Stage a change (not committed)
+      module.setItemAvailability('bulgogi-burger', false);
+
+      // Default should use working profile (with staged changes)
+      const llmMenu = module.getMenuForLLM() as any;
+      const burgerCategory = llmMenu.categories.find(
+        (c: any) => c.id === 'burger'
+      );
+
+      expect(
+        burgerCategory.items.find((i: any) => i.id === 'bulgogi-burger')
+      ).toBeUndefined();
+    });
+
+    it('should use committed profile with committedOnly option', async () => {
+      // Stage a change (not committed)
+      module.setItemAvailability('bulgogi-burger', false);
+
+      // With committedOnly, should use committed profile (before staging)
+      const llmMenu = module.getMenuForLLM({ committedOnly: true }) as any;
+      const burgerCategory = llmMenu.categories.find(
+        (c: any) => c.id === 'burger'
+      );
+
+      // Item should still be available in committed profile
+      expect(
+        burgerCategory.items.find((i: any) => i.id === 'bulgogi-burger')
+      ).toBeDefined();
+    });
+
+    it('should reflect committed changes with committedOnly after commit', async () => {
+      // Stage and commit a change
+      module.setItemAvailability('bulgogi-burger', false);
+      await module.commitChanges('Disable bulgogi burger');
+
+      // Now committedOnly should reflect the committed change
+      const llmMenu = module.getMenuForLLM({ committedOnly: true }) as any;
+      const burgerCategory = llmMenu.categories.find(
+        (c: any) => c.id === 'burger'
+      );
+
+      expect(
+        burgerCategory.items.find((i: any) => i.id === 'bulgogi-burger')
+      ).toBeUndefined();
+    });
   });
 
   describe('rollback', () => {
