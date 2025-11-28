@@ -13,6 +13,9 @@ export class StoreProfileRepository {
   private config: StoreProfileConfig;
   private db: IDBDatabase | null = null;
   private profilePath: string;
+  private memoryOnlyMode: boolean = false;
+  private memoryCommits: Map<string, ProfileCommit> = new Map();
+  private memoryProfile: StoreProfile | null = null;
 
   constructor(config: StoreProfileConfig = {}) {
     this.config = {
@@ -23,9 +26,31 @@ export class StoreProfileRepository {
     this.profilePath = this.config.profilePath!;
   }
 
+  // ============ Environment Detection ============
+
+  private isBrowserEnvironment(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      typeof indexedDB !== 'undefined' &&
+      typeof localStorage !== 'undefined'
+    );
+  }
+
+  /**
+   * Check if running in memory-only mode (SSR/Node environment)
+   */
+  isMemoryOnlyMode(): boolean {
+    return this.memoryOnlyMode;
+  }
+
   // ============ Initialization ============
 
   async initialize(): Promise<void> {
+    if (!this.isBrowserEnvironment()) {
+      // SSR/Node environment: use memory-only mode
+      this.memoryOnlyMode = true;
+      return;
+    }
     await this.openDatabase();
   }
 
@@ -34,6 +59,8 @@ export class StoreProfileRepository {
       this.db.close();
       this.db = null;
     }
+    this.memoryCommits.clear();
+    this.memoryProfile = null;
   }
 
   private openDatabase(): Promise<void> {
@@ -76,6 +103,11 @@ export class StoreProfileRepository {
   }
 
   async saveProfile(profile: StoreProfile): Promise<void> {
+    if (this.memoryOnlyMode) {
+      // Memory-only mode: store in memory
+      this.memoryProfile = profile;
+      return;
+    }
     // In browser environment, we'll use localStorage as a fallback
     // In production, this would POST to a server endpoint
     const key = `profile:${this.profilePath}`;
@@ -83,6 +115,9 @@ export class StoreProfileRepository {
   }
 
   async getStoredProfile(): Promise<StoreProfile | null> {
+    if (this.memoryOnlyMode) {
+      return this.memoryProfile;
+    }
     const key = `profile:${this.profilePath}`;
     const stored = localStorage.getItem(key);
     if (stored) {
@@ -92,11 +127,12 @@ export class StoreProfileRepository {
   }
 
   /**
-   * Reconstruct profile from IndexedDB commit history
-   * This is used when localStorage is cleared but IndexedDB history exists
+   * Reconstruct profile from commit history (IndexedDB or memory)
+   * This is used when localStorage is cleared but commit history exists
    */
   async reconstructProfileFromCommits(): Promise<StoreProfile | null> {
-    if (!this.db) {
+    // Check if we have any commits to work with
+    if (!this.memoryOnlyMode && !this.db) {
       return null;
     }
 
@@ -138,6 +174,11 @@ export class StoreProfileRepository {
   // ============ Commit Operations ============
 
   async saveCommit(commit: ProfileCommit): Promise<void> {
+    if (this.memoryOnlyMode) {
+      this.memoryCommits.set(commit.commitId, commit);
+      return;
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -153,6 +194,10 @@ export class StoreProfileRepository {
   }
 
   async getCommit(commitId: string): Promise<ProfileCommit | null> {
+    if (this.memoryOnlyMode) {
+      return this.memoryCommits.get(commitId) || null;
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -171,6 +216,14 @@ export class StoreProfileRepository {
     limit: number = 50,
     offset: number = 0
   ): Promise<ProfileCommit[]> {
+    if (this.memoryOnlyMode) {
+      // Sort by timestamp descending (newest first)
+      const allCommits = Array.from(this.memoryCommits.values()).sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      return allCommits.slice(offset, offset + limit);
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -215,10 +268,7 @@ export class StoreProfileRepository {
     fromCommitId: string | null,
     toCommitId: string
   ): Promise<ProfileCommit[]> {
-    if (!this.db) {
-      throw new Error('Database not initialized');
-    }
-
+    // Works for both memory and IndexedDB mode since getCommit handles it
     const chain: ProfileCommit[] = [];
     let currentId: string | null = toCommitId;
 
@@ -235,6 +285,10 @@ export class StoreProfileRepository {
   }
 
   async getCommitCount(): Promise<number> {
+    if (this.memoryOnlyMode) {
+      return this.memoryCommits.size;
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -250,6 +304,11 @@ export class StoreProfileRepository {
   }
 
   async clearHistory(): Promise<void> {
+    if (this.memoryOnlyMode) {
+      this.memoryCommits.clear();
+      return;
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
@@ -290,6 +349,11 @@ export class StoreProfileRepository {
   }
 
   private async deleteCommit(commitId: string): Promise<void> {
+    if (this.memoryOnlyMode) {
+      this.memoryCommits.delete(commitId);
+      return;
+    }
+
     if (!this.db) {
       throw new Error('Database not initialized');
     }
