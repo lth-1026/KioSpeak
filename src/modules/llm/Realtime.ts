@@ -1,8 +1,9 @@
 // src/modules/llm/GeminiRealtimeClient.ts
 import EventEmitter from 'eventemitter3';
 import { GoogleGenAI, LiveServerMessage, Modality, Session, Tool, Type } from '@google/genai';
-import { CartManager } from '../core/CartManager';
+import { CartManager, CartItem } from '../core/CartManager';
 import { StoreProfileModule } from '../store_profile';
+import { MockPaymentService, PaymentMethod } from '../payment';
 import { decode, decodeAudioData } from './utils';
 
 export class GeminiRealtimeClient extends EventEmitter {
@@ -10,6 +11,7 @@ export class GeminiRealtimeClient extends EventEmitter {
   private session: Session | null = null;
   private cartManager: CartManager;
   private storeProfile: StoreProfileModule;
+  private paymentService: MockPaymentService;
   private outputAudioContext: AudioContext;
   private outputNode: GainNode;
   private nextStartTime = 0;
@@ -20,6 +22,10 @@ export class GeminiRealtimeClient extends EventEmitter {
     super();
     this.cartManager = cartManager;
     this.storeProfile = storeProfile;
+    this.paymentService = new MockPaymentService({
+      mode: 'alwaysSuccess',
+      delayMs: 500, // 빠른 응답을 위해 딜레이 단축
+    });
 
     if (!this.API_KEY) {
       console.error("API Key is missing. Please set VITE_GEMINI_API_KEY in .env");
@@ -65,6 +71,21 @@ export class GeminiRealtimeClient extends EventEmitter {
               },
               required: ["menuName", "optionName"]
             }
+          },
+          {
+            name: "processPayment",
+            description: "장바구니의 주문을 결제합니다. 고객이 결제를 요청하고 결제 방법을 선택했을 때 호출합니다.",
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                method: {
+                  type: Type.STRING,
+                  description: "결제 방법 (CARD: 카드결제, MOBILE: 모바일결제)",
+                  enum: ["CARD", "MOBILE"]
+                }
+              },
+              required: ["method"]
+            }
           }
         ]
       }
@@ -88,6 +109,9 @@ export class GeminiRealtimeClient extends EventEmitter {
           4. '세트' 선택 시, 음료(콜라 / 사이다)를 물어보세요.
           5. 옵션이 결정되면 함수 'addOptionToItem'을 호출하세요.
           6. 한국어로 자연스럽게 대화하세요.
+          7. 주문이 완료되면 주문 내역을 확인하고, 결제 방법(카드/모바일)을 물어보세요.
+          8. 결제 방법이 확정되면 함수 'processPayment'를 호출하세요. method는 카드면 'CARD', 모바일이면 'MOBILE'입니다.
+          9. 결제 결과를 고객에게 안내하세요.
         `
       }]
     };
@@ -169,6 +193,27 @@ export class GeminiRealtimeClient extends EventEmitter {
         result = this.cartManager.addToCart(call.args.menuName, call.args.quantity);
       } else if (call.name === "addOptionToItem") {
         result = this.cartManager.addOptionToItem(call.args.menuName, call.args.optionName);
+      } else if (call.name === "processPayment") {
+        const cart = this.cartManager.getCart();
+        if (cart.length === 0) {
+          result = "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요.";
+        } else {
+          const paymentResult = await this.paymentService.requestPayment({
+            orderId: this.generateOrderId(),
+            orderName: this.generateOrderName(cart),
+            amount: this.cartManager.getTotal(),
+            method: call.args.method as PaymentMethod,
+          });
+
+          if (paymentResult.success) {
+            this.cartManager.clearCart();
+            result = `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}`;
+            this.emit('payment', { success: true, transactionId: paymentResult.transactionId });
+          } else {
+            result = `결제에 실패했습니다. 사유: ${paymentResult.failureReason}`;
+            this.emit('payment', { success: false, reason: paymentResult.failureReason });
+          }
+        }
       }
 
       // 결과 패키징
@@ -219,6 +264,16 @@ export class GeminiRealtimeClient extends EventEmitter {
       this.sources.delete(source);
     }
     this.nextStartTime = 0;
+  }
+
+  private generateOrderId(): string {
+    return `order_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
+
+  private generateOrderName(cart: CartItem[]): string {
+    if (cart.length === 0) return '';
+    if (cart.length === 1) return cart[0].menuName;
+    return `${cart[0].menuName} 외 ${cart.length - 1}건`;
   }
 
   // Public method to send audio from microphone
