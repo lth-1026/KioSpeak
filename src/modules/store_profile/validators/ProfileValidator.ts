@@ -322,6 +322,17 @@ export class ProfileValidator {
         this.validateOptionItem(opt, `${path}.sides[${i}]`);
       });
     }
+
+    // Optional customOptions validation
+    if (options.customOptions !== undefined) {
+      if (!Array.isArray(options.customOptions)) {
+        this.addError(`${path}.customOptions`, 'Must be an array');
+      } else {
+        options.customOptions.forEach((group, i) => {
+          this.validateCustomOptionGroup(group, `${path}.customOptions[${i}]`);
+        });
+      }
+    }
   }
 
   private validateMenuOptionsPartial(
@@ -357,6 +368,16 @@ export class ProfileValidator {
         });
       }
     }
+
+    if (options.customOptions !== undefined) {
+      if (!Array.isArray(options.customOptions)) {
+        this.addError(`${path}.customOptions`, 'Must be an array');
+      } else {
+        options.customOptions.forEach((group, i) => {
+          this.validateCustomOptionGroup(group, `${path}.customOptions[${i}]`);
+        });
+      }
+    }
   }
 
   private validateOptionItem(option: unknown, path: string): void {
@@ -374,6 +395,35 @@ export class ProfileValidator {
     }
     if (o.available !== undefined && typeof o.available !== 'boolean') {
       this.addError(`${path}.available`, 'Must be a boolean');
+    }
+  }
+
+  private validateCustomOptionGroup(group: unknown, path: string): void {
+    if (!this.isObject(group)) {
+      this.addError(path, 'Custom option group must be an object');
+      return;
+    }
+
+    const g = group as Record<string, unknown>;
+    this.validateRequiredString(g, 'id', path);
+    this.validateRequiredString(g, 'name', path);
+
+    if (g.required !== undefined && typeof g.required !== 'boolean') {
+      this.addError(`${path}.required`, 'Must be a boolean');
+    }
+    if (g.multiSelect !== undefined && typeof g.multiSelect !== 'boolean') {
+      this.addError(`${path}.multiSelect`, 'Must be a boolean');
+    }
+    if (g.maxSelections !== undefined) {
+      this.validateNumber(g.maxSelections, `${path}.maxSelections`);
+    }
+
+    if (!Array.isArray(g.options)) {
+      this.addError(`${path}.options`, 'Must be an array');
+    } else {
+      g.options.forEach((opt, i) => {
+        this.validateOptionItem(opt, `${path}.options[${i}]`);
+      });
     }
   }
 
@@ -431,6 +481,12 @@ export class ProfileValidator {
     if (settings.display !== undefined) {
       this.validateDisplaySettings(settings.display, 'settings.display');
     }
+    if (settings.ageRestrictions !== undefined) {
+      this.validateAgeRestrictionSettings(
+        settings.ageRestrictions,
+        'settings.ageRestrictions'
+      );
+    }
   }
 
   private validateSettingsPartial(settings: Record<string, unknown>): void {
@@ -448,6 +504,12 @@ export class ProfileValidator {
     }
     if (settings.display !== undefined) {
       this.validateDisplaySettings(settings.display, 'settings.display');
+    }
+    if (settings.ageRestrictions !== undefined) {
+      this.validateAgeRestrictionSettings(
+        settings.ageRestrictions,
+        'settings.ageRestrictions'
+      );
     }
   }
 
@@ -509,6 +571,24 @@ export class ProfileValidator {
 
     if (d.idleTimeout !== undefined) {
       this.validateNumber(d.idleTimeout, `${path}.idleTimeout`);
+    }
+  }
+
+  private validateAgeRestrictionSettings(ar: unknown, path: string): void {
+    if (!this.isObject(ar)) {
+      this.addError(path, 'Age restriction settings must be an object');
+      return;
+    }
+
+    const a = ar as Record<string, unknown>;
+    if (a.enabled !== undefined && typeof a.enabled !== 'boolean') {
+      this.addError(`${path}.enabled`, 'Must be a boolean');
+    }
+    if (a.restrictedItems !== undefined && !Array.isArray(a.restrictedItems)) {
+      this.addError(`${path}.restrictedItems`, 'Must be an array');
+    }
+    if (a.minAge !== undefined) {
+      this.validateNumber(a.minAge, `${path}.minAge`);
     }
   }
 

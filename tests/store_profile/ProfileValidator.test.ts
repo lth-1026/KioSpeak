@@ -243,6 +243,196 @@ describe('ProfileValidator', () => {
         'settings.display.theme: Must be one of: light, dark, custom'
       );
     });
+
+    // customOptions validation tests
+    it('should validate customOptions as array', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        menu: {
+          ...validProfile.menu,
+          options: {
+            ...validProfile.menu.options,
+            customOptions: 'not an array',
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'menu.options.customOptions: Must be an array'
+      );
+    });
+
+    it('should validate customOptions group structure', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        menu: {
+          ...validProfile.menu,
+          options: {
+            ...validProfile.menu.options,
+            customOptions: [
+              {
+                // missing id and name
+                required: true,
+                multiSelect: false,
+                options: [],
+              },
+            ],
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      const errors = validator.getErrorMessages();
+      expect(errors).toContain(
+        'menu.options.customOptions[0].id: Required field is missing'
+      );
+      expect(errors).toContain(
+        'menu.options.customOptions[0].name: Required field is missing'
+      );
+    });
+
+    it('should validate customOptions group options array', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        menu: {
+          ...validProfile.menu,
+          options: {
+            ...validProfile.menu.options,
+            customOptions: [
+              {
+                id: 'sauce',
+                name: 'Sauce',
+                required: false,
+                multiSelect: true,
+                options: 'not an array',
+              },
+            ],
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'menu.options.customOptions[0].options: Must be an array'
+      );
+    });
+
+    it('should validate valid customOptions', () => {
+      const validator = new ProfileValidator();
+      const valid = {
+        ...validProfile,
+        menu: {
+          ...validProfile.menu,
+          options: {
+            ...validProfile.menu.options,
+            customOptions: [
+              {
+                id: 'sauce',
+                name: 'Sauce',
+                required: false,
+                multiSelect: true,
+                maxSelections: 3,
+                options: [
+                  { id: 'ketchup', name: 'Ketchup', price: 0, available: true },
+                  { id: 'mustard', name: 'Mustard', price: 0, available: true },
+                ],
+              },
+            ],
+          },
+        },
+      };
+      expect(validator.validate(valid)).toBe(true);
+    });
+
+    // ageRestrictions validation tests
+    it('should validate ageRestrictions as object', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        settings: {
+          ...validProfile.settings,
+          ageRestrictions: 'not an object',
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'settings.ageRestrictions: Age restriction settings must be an object'
+      );
+    });
+
+    it('should validate ageRestrictions.enabled as boolean', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        settings: {
+          ...validProfile.settings,
+          ageRestrictions: {
+            enabled: 'yes',
+            restrictedItems: [],
+            minAge: 19,
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'settings.ageRestrictions.enabled: Must be a boolean'
+      );
+    });
+
+    it('should validate ageRestrictions.restrictedItems as array', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        settings: {
+          ...validProfile.settings,
+          ageRestrictions: {
+            enabled: true,
+            restrictedItems: 'not an array',
+            minAge: 19,
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'settings.ageRestrictions.restrictedItems: Must be an array'
+      );
+    });
+
+    it('should validate ageRestrictions.minAge as number', () => {
+      const validator = new ProfileValidator();
+      const invalid = {
+        ...validProfile,
+        settings: {
+          ...validProfile.settings,
+          ageRestrictions: {
+            enabled: true,
+            restrictedItems: [],
+            minAge: '19',
+          },
+        },
+      };
+      expect(validator.validate(invalid)).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'settings.ageRestrictions.minAge: Must be a number'
+      );
+    });
+
+    it('should validate valid ageRestrictions', () => {
+      const validator = new ProfileValidator();
+      const valid = {
+        ...validProfile,
+        settings: {
+          ...validProfile.settings,
+          ageRestrictions: {
+            enabled: true,
+            restrictedItems: ['beer', 'wine'],
+            minAge: 19,
+          },
+        },
+      };
+      expect(validator.validate(valid)).toBe(true);
+    });
   });
 
   describe('validatePartial()', () => {
@@ -292,6 +482,74 @@ describe('ProfileValidator', () => {
           },
         })
       ).toBe(true);
+    });
+
+    it('should validate partial customOptions', () => {
+      const validator = new ProfileValidator();
+      expect(
+        validator.validatePartial({
+          menu: {
+            options: {
+              customOptions: [
+                {
+                  id: 'sauce',
+                  name: 'Sauce',
+                  required: false,
+                  multiSelect: true,
+                  options: [],
+                },
+              ],
+            },
+          },
+        })
+      ).toBe(true);
+    });
+
+    it('should reject invalid partial customOptions', () => {
+      const validator = new ProfileValidator();
+      expect(
+        validator.validatePartial({
+          menu: {
+            options: {
+              customOptions: 'invalid',
+            },
+          },
+        })
+      ).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'menu.options.customOptions: Must be an array'
+      );
+    });
+
+    it('should validate partial ageRestrictions', () => {
+      const validator = new ProfileValidator();
+      expect(
+        validator.validatePartial({
+          settings: {
+            ageRestrictions: {
+              enabled: true,
+              restrictedItems: ['item-1'],
+              minAge: 19,
+            },
+          },
+        })
+      ).toBe(true);
+    });
+
+    it('should reject invalid partial ageRestrictions', () => {
+      const validator = new ProfileValidator();
+      expect(
+        validator.validatePartial({
+          settings: {
+            ageRestrictions: {
+              enabled: 'yes',
+            },
+          },
+        })
+      ).toBe(false);
+      expect(validator.getErrorMessages()).toContain(
+        'settings.ageRestrictions.enabled: Must be a boolean'
+      );
     });
   });
 
