@@ -26,7 +26,7 @@ export class CartManager {
 		let menuId = menuName;
 		let price = 0;
 
-		if (this.storeProfile) {
+		if (this.storeProfile && this.storeProfile.status === 'ready') {
 			const items = this.storeProfile.getMenuItems();
 			const item = items.find(i => i.name === menuName);
 			if (item) {
