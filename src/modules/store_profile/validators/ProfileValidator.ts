@@ -1,14 +1,4 @@
-import type {
-  StoreProfile,
-  StoreInfo,
-  Menu,
-  MenuCategory,
-  MenuItem,
-  MenuOptions,
-  OptionItem,
-  Promotion,
-  Settings,
-} from '../types';
+import type { StoreProfile } from '../types';
 
 export interface ValidationError {
   path: string;

@@ -1,5 +1,6 @@
 // Main module
-export { StoreProfileModule, ModuleStatus } from './StoreProfileModule';
+export { StoreProfileModule } from './StoreProfileModule';
+export type { ModuleStatus } from './StoreProfileModule';
 
 // Types
 export type {
