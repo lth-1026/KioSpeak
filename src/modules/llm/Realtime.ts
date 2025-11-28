@@ -2,22 +2,24 @@
 import EventEmitter from 'eventemitter3';
 import { GoogleGenAI, LiveServerMessage, Modality, Session, Tool, Type } from '@google/genai';
 import { CartManager } from '../core/CartManager';
-import menuData from '../store_profile/menu.json';
+import { StoreProfileModule } from '../store_profile';
 import { decode, decodeAudioData } from './utils';
 
 export class GeminiRealtimeClient extends EventEmitter {
   private client: GoogleGenAI;
   private session: Session | null = null;
   private cartManager: CartManager;
+  private storeProfile: StoreProfileModule;
   private outputAudioContext: AudioContext;
   private outputNode: GainNode;
   private nextStartTime = 0;
   private sources = new Set<AudioBufferSourceNode>();
   private readonly API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
-  constructor(cartManager: CartManager) {
+  constructor(cartManager: CartManager, storeProfile: StoreProfileModule) {
     super();
     this.cartManager = cartManager;
+    this.storeProfile = storeProfile;
 
     if (!this.API_KEY) {
       console.error("API Key is missing. Please set VITE_GEMINI_API_KEY in .env");
@@ -68,11 +70,14 @@ export class GeminiRealtimeClient extends EventEmitter {
       }
     ];
 
+    // Get menu data from StoreProfileModule
+    const menuData = this.storeProfile.getMenuForLLM();
+
     const systemInstruction = {
       parts: [{
         text: `
           당신은 햄버거 가게의 친절한 키오스크 직원입니다.
-          
+
           [메뉴 정보]
           ${JSON.stringify(menuData)}
 

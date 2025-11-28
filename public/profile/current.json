@@ -1,0 +1,87 @@
+{
+  "profileId": "default-profile-001",
+  "version": "1.0.0",
+  "store": {
+    "id": "store-001",
+    "name": "KioSpeak 버거",
+    "address": "서울특별시 강남구 테헤란로 123",
+    "phone": "02-1234-5678",
+    "businessHours": {
+      "monday": { "open": "09:00", "close": "22:00" },
+      "tuesday": { "open": "09:00", "close": "22:00" },
+      "wednesday": { "open": "09:00", "close": "22:00" },
+      "thursday": { "open": "09:00", "close": "22:00" },
+      "friday": { "open": "09:00", "close": "23:00" },
+      "saturday": { "open": "10:00", "close": "23:00" },
+      "sunday": { "open": "10:00", "close": "21:00" }
+    },
+    "timezone": "Asia/Seoul",
+    "currency": "KRW",
+    "taxRate": 10
+  },
+  "menu": {
+    "categories": [
+      {
+        "id": "burger",
+        "name": "버거",
+        "displayOrder": 1,
+        "items": [
+          {
+            "id": "bulgogi_burger",
+            "name": "불고기 버거",
+            "description": "달콤한 불고기 패티가 들어간 버거",
+            "price": 4000,
+            "hasSet": true,
+            "setPrice": 5500,
+            "calories": 520,
+            "available": true
+          },
+          {
+            "id": "hanwoo_burger",
+            "name": "한우 버거",
+            "description": "프리미엄 한우 패티가 들어간 버거",
+            "price": 8000,
+            "hasSet": true,
+            "setPrice": 9500,
+            "calories": 680,
+            "available": true
+          }
+        ]
+      }
+    ],
+    "options": {
+      "setChoices": [
+        { "id": "set", "name": "세트", "price": 0, "available": true },
+        { "id": "single", "name": "단품", "price": 0, "available": true }
+      ],
+      "drinks": [
+        { "id": "cola", "name": "콜라", "price": 0, "available": true },
+        { "id": "cider", "name": "사이다", "price": 0, "available": true }
+      ],
+      "sides": [
+        { "id": "fries", "name": "감자튀김", "price": 0, "available": true },
+        { "id": "cheese_stick", "name": "치즈스틱", "price": 500, "available": true }
+      ]
+    }
+  },
+  "promotions": [],
+  "settings": {
+    "language": "ko",
+    "voiceAssistant": {
+      "enabled": true,
+      "greeting": "안녕하세요! 주문을 도와드릴게요.",
+      "persona": "친절한 키오스크 직원"
+    },
+    "payment": {
+      "acceptedMethods": ["card", "cash", "mobile"],
+      "tipEnabled": false
+    },
+    "display": {
+      "theme": "light",
+      "fontSize": "medium",
+      "idleTimeout": 60
+    }
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}

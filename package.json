@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "repository": {
     "type": "git",
@@ -21,12 +23,18 @@
   "homepage": "https://github.com/lth-1026/KioSpeak#readme",
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/uuid": "^10.0.0",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^27.2.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.2"
+    "vite": "^7.2.2",
+    "vitest": "^4.0.14"
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
     "eventemitter3": "^5.0.1",
-    "face-api.js": "^0.22.2"
+    "face-api.js": "^0.22.2",
+    "fast-json-patch": "^3.1.1",
+    "uuid": "^13.0.0"
   }
 }

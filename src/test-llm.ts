@@ -5,10 +5,15 @@
 import { CartManager } from './modules/core/CartManager';
 import { GeminiRealtimeClient } from './modules/llm/Realtime';
 import { AudioRecorder } from './modules/audio/AudioRecorder';
+import { StoreProfileModule } from './modules/store_profile';
 
 async function startKiosk() {
-  const cartManager = new CartManager();
-  const geminiClient = new GeminiRealtimeClient(cartManager);
+  // Initialize StoreProfileModule
+  const storeProfile = new StoreProfileModule();
+  await storeProfile.initialize();
+
+  const cartManager = new CartManager(storeProfile);
+  const geminiClient = new GeminiRealtimeClient(cartManager, storeProfile);
   const audioRecorder = new AudioRecorder();
 
   // Setup Logging
