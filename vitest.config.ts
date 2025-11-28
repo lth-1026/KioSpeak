@@ -6,6 +6,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    sequence: {
+      shuffle: false,
+    },
+    fileParallelism: false,  // Run test files sequentially
   },
   resolve: {
     alias: {
