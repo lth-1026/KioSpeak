@@ -3,6 +3,7 @@ import type {
   ProfileCommit,
   StoreProfileConfig,
 } from './types';
+import { DiffEngine } from './DiffEngine';
 
 const DB_NAME = 'KioSpeakProfileDB';
 const DB_VERSION = 1;
@@ -88,6 +89,50 @@ export class StoreProfileRepository {
       return JSON.parse(stored);
     }
     return null;
+  }
+
+  /**
+   * Reconstruct profile from IndexedDB commit history
+   * This is used when localStorage is cleared but IndexedDB history exists
+   */
+  async reconstructProfileFromCommits(): Promise<StoreProfile | null> {
+    if (!this.db) {
+      return null;
+    }
+
+    const latestCommit = await this.getLatestCommit();
+    if (!latestCommit) {
+      return null;
+    }
+
+    // Get the full commit chain from initial commit to latest
+    const commits = await this.getCommitChain(null, latestCommit.commitId);
+    if (commits.length === 0) {
+      return null;
+    }
+
+    // Find the initial commit (the one with a snapshot)
+    const initialCommit = commits.find((c) => c.snapshot);
+    if (!initialCommit?.snapshot) {
+      return null;
+    }
+
+    // Start with the initial snapshot and apply all subsequent diffs
+    let profile = DiffEngine.cloneProfile(initialCommit.snapshot);
+
+    for (const commit of commits) {
+      // Skip the initial commit (already have its snapshot)
+      if (commit.commitId === initialCommit.commitId) {
+        continue;
+      }
+
+      // Apply the diff if present
+      if (commit.diff) {
+        profile = DiffEngine.applyDiff(profile, commit.diff);
+      }
+    }
+
+    return profile;
   }
 
   // ============ Commit Operations ============

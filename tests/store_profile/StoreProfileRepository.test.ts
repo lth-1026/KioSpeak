@@ -265,4 +265,173 @@ describe('StoreProfileRepository', () => {
       expect(stored).toEqual(profile);
     });
   });
+
+  describe('reconstructProfileFromCommits()', () => {
+    it('should return null when no commits exist', async () => {
+      const result = await repository.reconstructProfileFromCommits();
+      expect(result).toBeNull();
+    });
+
+    it('should reconstruct profile from initial commit snapshot', async () => {
+      const profile = createMockProfile();
+      const initialCommit: ProfileCommit = {
+        commitId: 'initial',
+        timestamp: '2024-01-01T00:00:00.000Z',
+        message: 'Initial commit',
+        parentCommitId: null,
+        snapshot: profile,
+      };
+
+      await repository.saveCommit(initialCommit);
+      const reconstructed = await repository.reconstructProfileFromCommits();
+
+      expect(reconstructed).toEqual(profile);
+    });
+
+    it('should apply diffs to reconstruct latest state', async () => {
+      const profile = createMockProfile();
+
+      // Initial commit with snapshot
+      const initialCommit: ProfileCommit = {
+        commitId: 'initial',
+        timestamp: '2024-01-01T00:00:00.000Z',
+        message: 'Initial commit',
+        parentCommitId: null,
+        snapshot: profile,
+      };
+
+      // Second commit that changes version
+      const secondCommit: ProfileCommit = {
+        commitId: 'second',
+        timestamp: '2024-01-02T00:00:00.000Z',
+        message: 'Update version',
+        parentCommitId: 'initial',
+        diff: {
+          operations: [{ op: 'replace', path: '/version', value: '2.0.0' }],
+        },
+      };
+
+      // Third commit that changes store name
+      const thirdCommit: ProfileCommit = {
+        commitId: 'third',
+        timestamp: '2024-01-03T00:00:00.000Z',
+        message: 'Update store name',
+        parentCommitId: 'second',
+        diff: {
+          operations: [
+            { op: 'replace', path: '/store/name', value: 'Updated Store' },
+          ],
+        },
+      };
+
+      await repository.saveCommit(initialCommit);
+      await repository.saveCommit(secondCommit);
+      await repository.saveCommit(thirdCommit);
+
+      const reconstructed = await repository.reconstructProfileFromCommits();
+
+      expect(reconstructed).not.toBeNull();
+      expect(reconstructed!.version).toBe('2.0.0');
+      expect(reconstructed!.store.name).toBe('Updated Store');
+    });
+
+    it('should return null when no snapshot exists in commit chain', async () => {
+      // Commit without snapshot
+      const commitWithoutSnapshot: ProfileCommit = {
+        commitId: 'orphan',
+        timestamp: '2024-01-01T00:00:00.000Z',
+        message: 'Orphan commit',
+        parentCommitId: null,
+        diff: {
+          operations: [{ op: 'replace', path: '/version', value: '2.0.0' }],
+        },
+      };
+
+      await repository.saveCommit(commitWithoutSnapshot);
+      const result = await repository.reconstructProfileFromCommits();
+
+      expect(result).toBeNull();
+    });
+
+    it('should handle complex diff operations', async () => {
+      const profile = createMockProfile();
+      profile.menu.categories = [
+        {
+          id: 'cat-1',
+          name: 'Burgers',
+          displayOrder: 1,
+          items: [
+            {
+              id: 'item-1',
+              name: 'Cheese Burger',
+              price: 5000,
+              hasSet: true,
+              available: true,
+            },
+          ],
+        },
+      ];
+
+      const initialCommit: ProfileCommit = {
+        commitId: 'initial',
+        timestamp: '2024-01-01T00:00:00.000Z',
+        message: 'Initial commit',
+        parentCommitId: null,
+        snapshot: profile,
+      };
+
+      // Add a new item
+      const addItemCommit: ProfileCommit = {
+        commitId: 'add-item',
+        timestamp: '2024-01-02T00:00:00.000Z',
+        message: 'Add new burger',
+        parentCommitId: 'initial',
+        diff: {
+          operations: [
+            {
+              op: 'add',
+              path: '/menu/categories/0/items/-',
+              value: {
+                id: 'item-2',
+                name: 'Double Burger',
+                price: 7000,
+                hasSet: true,
+                available: true,
+              },
+            },
+          ],
+        },
+      };
+
+      // Update price
+      const updatePriceCommit: ProfileCommit = {
+        commitId: 'update-price',
+        timestamp: '2024-01-03T00:00:00.000Z',
+        message: 'Update price',
+        parentCommitId: 'add-item',
+        diff: {
+          operations: [
+            {
+              op: 'replace',
+              path: '/menu/categories/0/items/0/price',
+              value: 5500,
+            },
+          ],
+        },
+      };
+
+      await repository.saveCommit(initialCommit);
+      await repository.saveCommit(addItemCommit);
+      await repository.saveCommit(updatePriceCommit);
+
+      const reconstructed = await repository.reconstructProfileFromCommits();
+
+      expect(reconstructed).not.toBeNull();
+      expect(reconstructed!.menu.categories[0].items).toHaveLength(2);
+      expect(reconstructed!.menu.categories[0].items[0].price).toBe(5500);
+      expect(reconstructed!.menu.categories[0].items[1].name).toBe(
+        'Double Burger'
+      );
+    });
+  });
 });

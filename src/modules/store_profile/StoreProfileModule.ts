@@ -56,9 +56,21 @@ export class StoreProfileModule {
     try {
       await this.repository.initialize();
 
-      // Try to load stored profile first, then fall back to fetching
+      // Try to load stored profile first
       let profile = await this.repository.getStoredProfile();
 
+      // If no stored profile, try to reconstruct from IndexedDB commit history
+      if (!profile) {
+        try {
+          profile = await this.repository.reconstructProfileFromCommits();
+        } catch (error) {
+          // Reconstruction failed (corrupted history, etc.) - continue to fallback
+          console.warn('Failed to reconstruct profile from commits:', error);
+          profile = null;
+        }
+      }
+
+      // If still no profile, fall back to fetching from file
       if (!profile) {
         profile = await this.repository.loadProfile();
       }
