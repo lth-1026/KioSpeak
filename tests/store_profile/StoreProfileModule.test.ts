@@ -35,17 +35,37 @@ const mockProfile: StoreProfile = {
             id: 'bulgogi-burger',
             name: '불고기 버거',
             price: 4000,
-            hasSet: true,
-            setPrice: 5500,
             available: true,
+            optionGroups: [
+              {
+                id: 'set_choice',
+                name: '세트 선택',
+                required: true,
+                multiSelect: false,
+                items: [
+                  { id: 'single', name: '단품', price: 0, available: true },
+                  { id: 'set', name: '세트', price: 1500, available: true },
+                ],
+              },
+            ],
           },
           {
             id: 'cheese-burger',
             name: '치즈 버거',
             price: 4500,
-            hasSet: true,
-            setPrice: 6000,
             available: true,
+            optionGroups: [
+              {
+                id: 'set_choice',
+                name: '세트 선택',
+                required: true,
+                multiSelect: false,
+                items: [
+                  { id: 'single', name: '단품', price: 0, available: true },
+                  { id: 'set', name: '세트', price: 1500, available: true },
+                ],
+              },
+            ],
           },
         ],
       },
@@ -58,12 +78,13 @@ const mockProfile: StoreProfile = {
             id: 'fries',
             name: '감자튀김',
             price: 2000,
-            hasSet: false,
             available: true,
+            optionGroups: undefined,
           },
         ],
       },
     ],
+    // @deprecated - 하위 호환성을 위해 유지
     options: {
       setChoices: [
         { id: 'set', name: '세트', price: 0, available: true },
@@ -272,9 +293,9 @@ describe('StoreProfileModule', () => {
       expect(available.length).toBe(3);
     });
 
-    it('should filter items by hasSet', () => {
-      const withSet = module.getMenuItems({ hasSet: true });
-      expect(withSet.length).toBe(2);
+    it('should filter items by hasOptions', () => {
+      const withOptions = module.getMenuItems({ hasOptions: true });
+      expect(withOptions.length).toBe(2); // burgers have optionGroups
     });
 
     it('should filter items by price range', () => {
@@ -306,24 +327,44 @@ describe('StoreProfileModule', () => {
       expect(category?.items.length).toBe(2);
     });
 
-    it('should get menu options', () => {
+    it('should get menu options (deprecated)', () => {
       const options = module.getMenuOptions();
-      expect(options.drinks.length).toBe(2);
-      expect(options.sides.length).toBe(2);
+      // getMenuOptions는 deprecated되었지만 하위 호환성을 위해 유지
+      expect(options).toBeDefined();
+      expect(options?.drinks.length).toBe(2);
+      expect(options?.sides.length).toBe(2);
+    });
+
+    it('should get menu item options via optionGroups', () => {
+      const item = module.getMenuItem('bulgogi-burger');
+      expect(item?.optionGroups).toBeDefined();
+      expect(item?.optionGroups?.length).toBeGreaterThan(0);
     });
 
     it('should add menu item', () => {
       const newItemId = module.addMenuItem('burger', {
         name: '스페셜 버거',
         price: 7000,
-        hasSet: true,
         available: true,
+        optionGroups: [
+          {
+            id: 'set_choice',
+            name: '세트 선택',
+            required: true,
+            multiSelect: false,
+            items: [
+              { id: 'single', name: '단품', price: 0, available: true },
+              { id: 'set', name: '세트', price: 2000, available: true },
+            ],
+          },
+        ],
       });
 
       expect(newItemId).toBeDefined();
 
       const item = module.getMenuItem(newItemId);
       expect(item?.name).toBe('스페셜 버거');
+      expect(item?.optionGroups?.length).toBe(1);
     });
 
     it('should throw when adding to non-existent category', () => {
@@ -331,7 +372,6 @@ describe('StoreProfileModule', () => {
         module.addMenuItem('non-existent', {
           name: 'Test',
           price: 1000,
-          hasSet: false,
           available: true,
         })
       ).toThrow('Category not found');
@@ -507,20 +547,31 @@ describe('StoreProfileModule', () => {
       await module.initialize();
     });
 
-    it('should return LLM-compatible format', () => {
+    it('should return LLM-compatible format with optionGroups', () => {
       const llmMenu = module.getMenuForLLM() as any;
 
       expect(llmMenu.categories).toBeDefined();
-      expect(llmMenu.options).toBeDefined();
-      expect(llmMenu.options.set_choices).toContain('세트');
-      expect(llmMenu.options.drinks).toContain('콜라');
+      expect(llmMenu.categories.length).toBeGreaterThan(0);
+
+      // 새 구조: 각 아이템에 optionGroups가 있음
+      const firstItem = llmMenu.categories[0].items[0];
+      expect(firstItem.id).toBeDefined();
+      expect(firstItem.name).toBeDefined();
+      expect(firstItem.price).toBeDefined();
     });
 
-    it('should use snake_case for compatibility', () => {
+    it('should include optionGroups with items', () => {
       const llmMenu = module.getMenuForLLM() as any;
+      const burgerCategory = llmMenu.categories.find((c: any) => c.id === 'burger');
+      const burger = burgerCategory?.items[0];
 
-      expect(llmMenu.categories[0].items[0].has_set).toBe(true);
-      expect(llmMenu.options.set_choices).toBeDefined();
+      // 버거는 optionGroups가 있어야 함
+      expect(burger.optionGroups).toBeDefined();
+      if (burger.optionGroups) {
+        expect(burger.optionGroups.length).toBeGreaterThan(0);
+        expect(burger.optionGroups[0].id).toBeDefined();
+        expect(burger.optionGroups[0].items).toBeDefined();
+      }
     });
 
     it('should filter unavailable items', async () => {

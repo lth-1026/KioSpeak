@@ -115,16 +115,13 @@ describe('ProfileValidator', () => {
       );
     });
 
-    it('should require menu.options', () => {
+    it('should accept menu without options (options is deprecated)', () => {
       const validator = new ProfileValidator();
-      const invalid = {
+      const valid = {
         ...validProfile,
         menu: { categories: [] },
       };
-      expect(validator.validate(invalid)).toBe(false);
-      expect(validator.getErrorMessages()).toContain(
-        'menu.options: Options must be an object'
-      );
+      expect(validator.validate(valid)).toBe(true);
     });
 
     it('should validate menu items', () => {
