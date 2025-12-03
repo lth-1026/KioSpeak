@@ -57,23 +57,33 @@ export class StoreProfileModule {
     try {
       await this.repository.initialize();
 
-      // Try to load stored profile first
-      let profile = await this.repository.getStoredProfile();
+      let profile: StoreProfile | null = null;
 
-      // If no stored profile, try to reconstruct from IndexedDB commit history
-      if (!profile) {
-        try {
-          profile = await this.repository.reconstructProfileFromCommits();
-        } catch (error) {
-          // Reconstruction failed (corrupted history, etc.) - continue to fallback
-          console.warn('Failed to reconstruct profile from commits:', error);
-          profile = null;
-        }
-      }
+      // DEV 모드에서는 항상 JSON 파일에서 로드 (캐시 무시)
+      const isDev = import.meta.env.DEV;
 
-      // If still no profile, fall back to fetching from file
-      if (!profile) {
+      if (isDev) {
+        console.log('[StoreProfile] DEV mode: loading profile from JSON file');
         profile = await this.repository.loadProfile();
+      } else {
+        // Production: Try to load stored profile first
+        profile = await this.repository.getStoredProfile();
+
+        // If no stored profile, try to reconstruct from IndexedDB commit history
+        if (!profile) {
+          try {
+            profile = await this.repository.reconstructProfileFromCommits();
+          } catch (error) {
+            // Reconstruction failed (corrupted history, etc.) - continue to fallback
+            console.warn('Failed to reconstruct profile from commits:', error);
+            profile = null;
+          }
+        }
+
+        // If still no profile, fall back to fetching from file
+        if (!profile) {
+          profile = await this.repository.loadProfile();
+        }
       }
 
       if (!this.validator.validate(profile)) {
