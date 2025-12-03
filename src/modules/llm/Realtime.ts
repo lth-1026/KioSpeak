@@ -5,6 +5,7 @@ import { CartManager, CartItem } from '../core/CartManager';
 import { StoreProfileModule } from '../store_profile';
 import { MockPaymentService, PaymentMethod } from '../payment';
 import { decode, decodeAudioData } from './utils';
+import { AgeGroup } from '../../shared/types';
 
 export type ConnectionMode = 'audio' | 'text';
 
@@ -44,7 +45,7 @@ export class GeminiRealtimeClient extends EventEmitter {
     this.nextStartTime = this.outputAudioContext.currentTime;
   }
 
-  async connect(mode: ConnectionMode = 'audio') {
+  async connect(mode: ConnectionMode = 'audio', ageGroup?: AgeGroup) {
     const model = 'gemini-2.5-flash-native-audio-preview-09-2025';
 
     const tools: Tool[] = [
@@ -96,10 +97,16 @@ export class GeminiRealtimeClient extends EventEmitter {
     // Get menu data from StoreProfileModule
     const menuData = this.storeProfile.getMenuForLLM();
 
+    let speedInstruction = "";
+    if (ageGroup === AgeGroup.CHILD || ageGroup === AgeGroup.MIDDLE_AGED || ageGroup === AgeGroup.SENIOR) {
+      speedInstruction = "사용자가 어린이, 중장년층 또는 고령자입니다. 목소리 속도를 평소보다 천천히 하고, 매우 또박또박 말하세요. 이해하기 쉬운 단어를 사용하세요.";
+    }
+
     const systemInstruction = {
       parts: [{
         text: `
           당신은 햄버거 가게의 친절한 키오스크 직원입니다.
+          ${speedInstruction}
 
           [메뉴 정보]
           ${JSON.stringify(menuData)}
