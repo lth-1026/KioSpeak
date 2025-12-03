@@ -6,6 +6,8 @@ import { StoreProfileModule } from '../store_profile';
 import { MockPaymentService, PaymentMethod } from '../payment';
 import { decode, decodeAudioData } from './utils';
 
+export type ConnectionMode = 'audio' | 'text';
+
 export class GeminiRealtimeClient extends EventEmitter {
   private client: GoogleGenAI;
   private session: Session | null = null;
@@ -42,8 +44,8 @@ export class GeminiRealtimeClient extends EventEmitter {
     this.nextStartTime = this.outputAudioContext.currentTime;
   }
 
-  async connect() {
-    const model = 'gemini-2.5-flash-native-audio-preview-09-2025'; // User requested model
+  async connect(mode: ConnectionMode = 'audio') {
+    const model = 'gemini-2.5-flash-native-audio-preview-09-2025';
 
     const tools: Tool[] = [
       {
@@ -116,15 +118,17 @@ export class GeminiRealtimeClient extends EventEmitter {
       }]
     };
 
+    // 응답은 항상 오디오, outputAudioTranscription으로 텍스트 transcript도 받음
+    const responseModalities = [Modality.AUDIO];
+
     try {
-      this.emit('log', 'Connecting to Gemini...');
+      this.emit('log', `Connecting to Gemini (${mode} mode)...`);
       this.session = await this.client.live.connect({
         model: model,
         callbacks: {
           onopen: () => {
             console.log("Gemini Connected");
-            this.emit('log', '✅ Connected to Gemini (Text + Audio)');
-            // Initial setup (system instruction and tools) are now part of the connect config
+            this.emit('log', `✅ Connected to Gemini (${mode} mode)`);
             this.emit('log', '⚙️ Initial setup sent');
           },
           onmessage: async (message: LiveServerMessage) => {
@@ -134,11 +138,21 @@ export class GeminiRealtimeClient extends EventEmitter {
               this.playAudioChunk(audio.data);
             }
 
-            // Handle Text (if available)
-            const text = message.serverContent?.modelTurn?.parts?.[0]?.text;
-            if (text) {
-              console.log("[Gemini Text]", text);
-              this.emit('log', `🤖 Gemini: ${text}`);
+            // Handle Text - 여러 위치에서 텍스트 찾기
+            const parts = message.serverContent?.modelTurn?.parts || [];
+            for (const part of parts) {
+              if (part.text) {
+                console.log("[Gemini Text]", part.text);
+                this.emit('log', `🤖 Gemini: ${part.text}`);
+                this.emit('text_response', part.text);
+              }
+            }
+
+            // Handle output transcription (outputAudioTranscription 설정 시)
+            const outputTranscription = (message as any).serverContent?.outputTranscription?.text;
+            if (outputTranscription) {
+              this.emit('log', `🤖 Gemini: ${outputTranscription}`);
+              this.emit('text_response', outputTranscription);
             }
 
             // Handle Function Calls
@@ -152,6 +166,12 @@ export class GeminiRealtimeClient extends EventEmitter {
             if (interrupted) {
               this.stopAudio();
             }
+
+            // Handle turnComplete
+            const turnComplete = message.serverContent?.turnComplete;
+            if (turnComplete) {
+              this.emit('turn_complete');
+            }
           },
           onerror: (e: ErrorEvent) => {
             console.error("Gemini Error:", e);
@@ -163,12 +183,10 @@ export class GeminiRealtimeClient extends EventEmitter {
           },
         },
         config: {
-          responseModalities: [Modality.AUDIO], // Both TEXT and AUDIO needed for tool calls
+          responseModalities: responseModalities,
           systemInstruction: systemInstruction,
           tools: tools,
-          // speechConfig: {
-          //   voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Orus' } },
-          // },
+          outputAudioTranscription: {}, // 오디오 응답의 텍스트 transcript 받기
         },
       });
     } catch (e) {
@@ -216,6 +234,13 @@ export class GeminiRealtimeClient extends EventEmitter {
         }
       }
 
+      // Tool Call 이벤트 emit (UI에서 사용)
+      this.emit('tool_call', {
+        name: call.name,
+        args: call.args,
+        result: result,
+      });
+
       // 결과 패키징
       functionResponses.push({
         id: call.id,
@@ -258,7 +283,7 @@ export class GeminiRealtimeClient extends EventEmitter {
     this.sources.add(source);
   }
 
-  private stopAudio() {
+  stopAudio() {
     for (const source of this.sources.values()) {
       source.stop();
       this.sources.delete(source);
@@ -274,6 +299,32 @@ export class GeminiRealtimeClient extends EventEmitter {
     if (cart.length === 0) return '';
     if (cart.length === 1) return cart[0].menuName;
     return `${cart[0].menuName} 외 ${cart.length - 1}건`;
+  }
+
+  // Public method to send text message (텍스트 모드용)
+  sendTextMessage(text: string): void {
+    if (this.session) {
+      try {
+        this.emit('log', `👤 User: ${text}`);
+        this.emit('user_message', text); // 사용자 메시지 이벤트
+
+        // role/parts 형식으로 전송
+        this.session.sendClientContent({
+          turns: [
+            {
+              role: 'user',
+              parts: [{ text: text }]
+            }
+          ],
+          turnComplete: true,
+        });
+      } catch (error) {
+        console.error("Failed to send text message:", error);
+        this.emit('log', `❌ Failed to send: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    } else {
+      this.emit('log', '❌ Session not connected');
+    }
   }
 
   // Public method to send audio from microphone
