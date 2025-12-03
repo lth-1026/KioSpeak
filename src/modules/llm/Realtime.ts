@@ -1,7 +1,7 @@
 // src/modules/llm/GeminiRealtimeClient.ts
 import EventEmitter from 'eventemitter3';
 import { GoogleGenAI, LiveServerMessage, Modality, Session, Tool, Type } from '@google/genai';
-import { CartManager, CartItem } from '../core/CartManager';
+import { CartManager, CartItem, CartOperationResult } from '../core/CartManager';
 import { StoreProfileModule } from '../store_profile';
 import { MockPaymentService, PaymentMethod } from '../payment';
 import { decode, decodeAudioData } from './utils';
@@ -53,26 +53,59 @@ export class GeminiRealtimeClient extends EventEmitter {
         functionDeclarations: [
           {
             name: "addToCart",
-            description: "장바구니에 메뉴를 추가합니다.",
+            description: "장바구니에 메뉴를 추가합니다. 추가 후 cartItemId와 선택해야 할 옵션 그룹 정보를 반환합니다.",
             parameters: {
               type: Type.OBJECT,
               properties: {
-                menuName: { type: Type.STRING, description: "추가할 구체적인 메뉴 이름 (예: 불고기 버거)" },
-                quantity: { type: Type.NUMBER, description: "수량" }
+                menuName: { type: Type.STRING, description: "추가할 메뉴 이름 (예: 불고기 버거, 콜라)" },
+                quantity: { type: Type.NUMBER, description: "수량 (기본값: 1)" }
               },
               required: ["menuName"]
             }
           },
           {
-            name: "addOptionToItem",
-            description: "주문한 메뉴에 옵션(세트/단품, 음료 등)을 추가합니다.",
+            name: "selectOption",
+            description: "장바구니 아이템에 옵션을 선택합니다. 의존성이 있는 옵션은 선행 옵션 선택 후에만 선택 가능합니다.",
             parameters: {
               type: Type.OBJECT,
               properties: {
-                menuName: { type: Type.STRING, description: "옵션을 추가할 메뉴 이름" },
-                optionName: { type: Type.STRING, description: "추가할 옵션 내용 (예: 세트, 콜라)" }
+                cartItemId: { type: Type.STRING, description: "장바구니 아이템 ID (addToCart 결과에서 받음)" },
+                groupId: { type: Type.STRING, description: "옵션 그룹 ID (예: set_choice, drink, size)" },
+                optionId: { type: Type.STRING, description: "선택할 옵션 ID (예: set, single, cola, large)" }
               },
-              required: ["menuName", "optionName"]
+              required: ["cartItemId", "groupId", "optionId"]
+            }
+          },
+          {
+            name: "updateQuantity",
+            description: "장바구니 아이템의 수량을 변경합니다.",
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                cartItemId: { type: Type.STRING, description: "장바구니 아이템 ID" },
+                quantity: { type: Type.NUMBER, description: "변경할 수량" }
+              },
+              required: ["cartItemId", "quantity"]
+            }
+          },
+          {
+            name: "removeFromCart",
+            description: "장바구니에서 아이템을 삭제합니다.",
+            parameters: {
+              type: Type.OBJECT,
+              properties: {
+                cartItemId: { type: Type.STRING, description: "삭제할 장바구니 아이템 ID" }
+              },
+              required: ["cartItemId"]
+            }
+          },
+          {
+            name: "getCart",
+            description: "현재 장바구니 상태를 조회합니다.",
+            parameters: {
+              type: Type.OBJECT,
+              properties: {},
+              required: []
             }
           },
           {
@@ -105,22 +138,42 @@ export class GeminiRealtimeClient extends EventEmitter {
     const systemInstruction = {
       parts: [{
         text: `
-          당신은 햄버거 가게의 친절한 키오스크 직원입니다.
-          ${speedInstruction}
+당신은 햄버거 가게의 친절한 키오스크 직원입니다.
+${speedInstruction}
 
-          [메뉴 정보]
-          ${JSON.stringify(menuData)}
+[메뉴 정보]
+${JSON.stringify(menuData, null, 2)}
 
-          [대화 규칙]
-          1. 사용자가 모호하게 주문하면(예: "햄버거 줘"), 메뉴에 있는 구체적인 종류를 나열하며 되물어보세요(예: "불고기 버거와 한우 버거가 있습니다. 어떤 걸 드릴까요?").
-          2. 메뉴가 확정되면 함수 'addToCart'를 호출하세요.
-          3. 햄버거 주문 시 반드시 '세트'인지 '단품'인지 물어보세요.
-          4. '세트' 선택 시, 음료(콜라 / 사이다)를 물어보세요.
-          5. 옵션이 결정되면 함수 'addOptionToItem'을 호출하세요.
-          6. 한국어로 자연스럽게 대화하세요.
-          7. 주문이 완료되면 주문 내역을 확인하고, 결제 방법(카드/모바일)을 물어보세요.
-          8. 결제 방법이 확정되면 함수 'processPayment'를 호출하세요. method는 카드면 'CARD', 모바일이면 'MOBILE'입니다.
-          9. 결제 결과를 고객에게 안내하세요.
+[메뉴 구조 이해]
+- 각 메뉴(MenuItem)는 optionGroups를 가질 수 있습니다.
+- optionGroups: 해당 메뉴에서 선택 가능한 옵션들 (세트/단품, 사이즈, 음료 등)
+- dependsOn: 다른 옵션 선택 시에만 표시되는 조건부 옵션
+  예: 음료/사이드 선택은 '세트' 선택 시에만 필요
+
+[주문 흐름]
+1. 메뉴 확정 → addToCart 호출 → cartItemId와 pendingOptions(필수 옵션 그룹) 반환
+2. pendingOptions의 필수 옵션(required: true)을 순서대로 고객에게 물어보기
+3. 각 옵션 선택 → selectOption(cartItemId, groupId, optionId) 호출
+4. 의존성 옵션(dependsOn)은 선행 옵션 선택 후에 pendingOptions에 나타남
+5. pendingOptions가 없으면 → 추가 주문 여부 확인
+6. 주문 완료 → getCart로 장바구니 확인 → 결제 방법 물어보기 → processPayment
+
+[대화 규칙]
+1. 사용자가 모호하게 주문하면 구체적인 메뉴를 제안하세요.
+2. 메뉴별로 다른 옵션이 있으니 optionGroups를 확인하세요:
+   - 버거: set_choice(세트/단품) → (세트 시) drink, side 선택
+   - 음료 단품: size(미디엄/라지) 선택
+   - 사이드 단품: 옵션 없음 (바로 장바구니에 추가)
+3. addToCart 결과의 pendingOptions에 있는 옵션만 물어보세요.
+4. 수량 변경 요청 시 updateQuantity, 삭제 요청 시 removeFromCart 사용
+5. 한국어로 자연스럽게 대화하세요.
+6. 결제 시 processPayment 호출 (method: "CARD" 또는 "MOBILE")
+
+[함수 호출 시 주의]
+- addToCart 결과로 받은 cartItemId를 이후 옵션 선택에 반드시 사용
+- selectOption 호출 시 groupId와 optionId는 메뉴 정보의 id 값 사용
+- 품절(available: false) 메뉴/옵션은 주문 불가 안내
+- 옵션 가격이 0보다 크면 고객에게 추가 금액 안내 (예: "치즈스틱은 500원 추가입니다")
         `
       }]
     };
@@ -217,16 +270,27 @@ export class GeminiRealtimeClient extends EventEmitter {
       console.log(`[Gemini Request] ${logMsg}`);
       this.emit('log', logMsg);
 
-      let result;
+      let result: CartOperationResult | string | object;
+
       // 실제 Core 함수 실행
       if (call.name === "addToCart") {
-        result = this.cartManager.addToCart(call.args.menuName, call.args.quantity);
-      } else if (call.name === "addOptionToItem") {
-        result = this.cartManager.addOptionToItem(call.args.menuName, call.args.optionName);
+        result = this.cartManager.addToCart(call.args.menuName, call.args.quantity || 1);
+      } else if (call.name === "selectOption") {
+        result = this.cartManager.selectOption(
+          call.args.cartItemId,
+          call.args.groupId,
+          call.args.optionId
+        );
+      } else if (call.name === "updateQuantity") {
+        result = this.cartManager.updateQuantity(call.args.cartItemId, call.args.quantity);
+      } else if (call.name === "removeFromCart") {
+        result = this.cartManager.removeCartItem(call.args.cartItemId);
+      } else if (call.name === "getCart") {
+        result = this.cartManager.getCartSummary();
       } else if (call.name === "processPayment") {
         const cart = this.cartManager.getCart();
         if (cart.length === 0) {
-          result = "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요.";
+          result = { success: false, message: "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요." };
         } else {
           const paymentResult = await this.paymentService.requestPayment({
             orderId: this.generateOrderId(),
@@ -237,13 +301,15 @@ export class GeminiRealtimeClient extends EventEmitter {
 
           if (paymentResult.success) {
             this.cartManager.clearCart();
-            result = `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}`;
+            result = { success: true, message: `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}` };
             this.emit('payment', { success: true, transactionId: paymentResult.transactionId });
           } else {
-            result = `결제에 실패했습니다. 사유: ${paymentResult.failureReason}`;
+            result = { success: false, message: `결제에 실패했습니다. 사유: ${paymentResult.failureReason}` };
             this.emit('payment', { success: false, reason: paymentResult.failureReason });
           }
         }
+      } else {
+        result = { success: false, message: `알 수 없는 함수: ${call.name}` };
       }
 
       // Tool Call 이벤트 emit (UI에서 사용)
