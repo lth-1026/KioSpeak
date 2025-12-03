@@ -109,6 +109,15 @@ export class GeminiRealtimeClient extends EventEmitter {
             }
           },
           {
+            name: "getMenu",
+            description: "판매 중인 메뉴 목록을 조회합니다. 대화 시작 시 반드시 호출하여 메뉴를 파악하세요.",
+            parameters: {
+              type: Type.OBJECT,
+              properties: {},
+              required: []
+            }
+          },
+          {
             name: "processPayment",
             description: "장바구니의 주문을 결제합니다. 고객이 결제를 요청하고 결제 방법을 선택했을 때 호출합니다.",
             parameters: {
@@ -127,8 +136,6 @@ export class GeminiRealtimeClient extends EventEmitter {
       }
     ];
 
-    // Get menu data from StoreProfileModule
-    const menuData = this.storeProfile.getMenuForLLM();
 
     let speedInstruction = "";
     if (ageGroup === AgeGroup.CHILD || ageGroup === AgeGroup.MIDDLE_AGED || ageGroup === AgeGroup.SENIOR) {
@@ -141,8 +148,9 @@ export class GeminiRealtimeClient extends EventEmitter {
 당신은 햄버거 가게의 친절한 키오스크 직원입니다.
 ${speedInstruction}
 
-[메뉴 정보]
-${JSON.stringify(menuData, null, 2)}
+[필수: 대화 시작 시 메뉴 조회]
+고객과 대화를 시작할 때 반드시 getMenu를 호출하여 현재 판매 중인 메뉴를 파악하세요.
+메뉴 정보 없이는 절대 주문을 받거나 메뉴를 안내하지 마세요.
 
 [메뉴 구조 이해]
 - 각 메뉴(MenuItem)는 optionGroups를 가질 수 있습니다.
@@ -150,13 +158,16 @@ ${JSON.stringify(menuData, null, 2)}
 - dependsOn: 다른 옵션 선택 시에만 표시되는 조건부 옵션
   예: 음료/사이드 선택은 '세트' 선택 시에만 필요
 
-[주문 흐름]
-1. 메뉴 확정 → addToCart 호출 → cartItemId와 pendingOptions(필수 옵션 그룹) 반환
-2. pendingOptions의 필수 옵션(required: true)을 순서대로 고객에게 물어보기
-3. 각 옵션 선택 → selectOption(cartItemId, groupId, optionId) 호출
-4. 의존성 옵션(dependsOn)은 선행 옵션 선택 후에 pendingOptions에 나타남
-5. pendingOptions가 없으면 → 추가 주문 여부 확인
-6. 주문 완료 → getCart로 장바구니 확인 → 결제 방법 물어보기 → processPayment
+[주문 흐름 - 반드시 순차적으로!]
+1. 메뉴 확정 → addToCart 호출
+2. addToCart 결과 확인 → cartItemId와 pendingOptions 저장
+3. pendingOptions가 있으면 → 첫 번째 옵션 그룹을 고객에게 물어보기
+4. 고객 응답 → selectOption 호출 (pendingOptions에서 가져온 groupId와 items의 id 사용)
+5. selectOption 결과의 pendingOptions 다시 확인 → 다음 옵션이 있으면 물어보기
+6. pendingOptions가 비어있으면 → 추가 주문 여부 확인
+7. 주문 완료 → getCart로 장바구니 확인 → 결제
+
+중요: 각 함수 호출 후 반드시 결과를 확인하고, 결과에 포함된 정보(cartItemId, pendingOptions의 id들)를 사용하세요.
 
 [중요: 장바구니 조회 먼저]
 수량 변경, 옵션 변경, 삭제 등 기존 장바구니 아이템을 수정하는 요청을 받으면:
@@ -182,12 +193,17 @@ ${JSON.stringify(menuData, null, 2)}
 [함수 호출 시 주의]
 - 장바구니 수정 작업 전에는 반드시 getCart로 현재 상태 확인
 - addToCart 결과로 받은 cartItemId를 이후 옵션 선택에 사용
-- selectOption 호출 시 groupId와 optionId는 메뉴 정보의 id 값 사용
+- selectOption 호출 시:
+  * addToCart나 selectOption 결과의 pendingOptions에서 groupId와 optionId를 확인
+  * pendingOptions의 items 배열에 있는 정확한 id 값만 사용 (추측하거나 번역하지 말 것)
 - 품절(available: false) 메뉴/옵션은 주문 불가 안내
 - 옵션 가격이 0보다 크면 고객에게 추가 금액 안내 (예: "치즈스틱은 500원 추가입니다")
         `
       }]
     };
+
+    // 프롬프트 확인용 콘솔 출력
+    console.log('[System Instruction]', systemInstruction.parts[0].text);
 
     // 응답은 항상 오디오, outputAudioTranscription으로 텍스트 transcript도 받음
     const responseModalities = [Modality.AUDIO];
@@ -298,6 +314,8 @@ ${JSON.stringify(menuData, null, 2)}
         result = this.cartManager.removeCartItem(call.args.cartItemId);
       } else if (call.name === "getCart") {
         result = this.cartManager.getCartSummary();
+      } else if (call.name === "getMenu") {
+        result = this.storeProfile.getMenuForLLM();
       } else if (call.name === "processPayment") {
         const cart = this.cartManager.getCart();
         if (cart.length === 0) {
