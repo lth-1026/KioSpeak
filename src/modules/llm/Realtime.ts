@@ -137,6 +137,11 @@ export class GeminiRealtimeClient extends EventEmitter {
             console.log("Gemini Connected");
             this.emit('log', `✅ Connected to Gemini (${mode} mode)`);
             this.emit('log', '⚙️ Initial setup sent');
+
+            // Trigger initial greeting
+            setTimeout(() => {
+              this.sendTextMessage("손님이 왔어. 먼저 인사하고 주문을 받아줘.");
+            }, 100);
           },
           onmessage: async (message: LiveServerMessage) => {
             // Handle Audio
