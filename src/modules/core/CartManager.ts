@@ -224,6 +224,8 @@ export class CartManager {
 			});
 		} else {
 			// 단일 선택 모드 - 기존 선택 교체
+			const oldOptionId = existingOption?.selectedItems[0]?.id;
+
 			if (existingOption) {
 				existingOption.selectedItems = [
 					{
@@ -244,6 +246,11 @@ export class CartManager {
 						},
 					],
 				});
+			}
+
+			// 옵션이 변경되면 이 옵션에 의존하는 다른 옵션들 초기화
+			if (oldOptionId && oldOptionId !== optionId) {
+				this.clearDependentOptions(cartItem, groupId, optionId);
 			}
 		}
 
@@ -513,5 +520,31 @@ export class CartManager {
 	clearCart(): void {
 		this.cart = [];
 		console.log('[CartManager] 장바구니 비움');
+	}
+
+	// ============ PRIVATE HELPERS ============
+
+	/**
+	 * 특정 옵션에 의존하는 옵션들 초기화
+	 * 예: 세트 → 단품 변경 시 음료/사이드 선택 삭제
+	 */
+	private clearDependentOptions(cartItem: CartItem, changedGroupId: string, newOptionId: string): void {
+		if (!cartItem.optionGroups) return;
+
+		// 변경된 옵션 그룹에 의존하는 다른 그룹들 찾기
+		const dependentGroups = cartItem.optionGroups.filter(
+			(group) => group.dependsOn?.groupId === changedGroupId
+		);
+
+		for (const group of dependentGroups) {
+			// 새 옵션이 의존 조건을 만족하지 않으면 해당 옵션 선택 삭제
+			if (!group.dependsOn!.optionIds.includes(newOptionId)) {
+				const optionIdx = cartItem.options.findIndex((o) => o.groupId === group.id);
+				if (optionIdx >= 0) {
+					const removed = cartItem.options.splice(optionIdx, 1)[0];
+					console.log(`[CartManager] 의존 옵션 초기화: ${removed.groupName}`);
+				}
+			}
+		}
 	}
 }
