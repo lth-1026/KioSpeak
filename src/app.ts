@@ -41,6 +41,18 @@ async function main() {
             text-decoration: none;
             display: inline-block;
           ">👁️ Test Vision</a>
+          <a href="/test-integration.html" style="
+            background: #9C27B0;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+          ">🚀 Test Integration</a>
         </div>
       </div>
       

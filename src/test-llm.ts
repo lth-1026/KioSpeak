@@ -6,8 +6,9 @@ import { CartManager } from './modules/core/CartManager';
 import { GeminiRealtimeClient } from './modules/llm/Realtime';
 import { AudioRecorder } from './modules/audio/AudioRecorder';
 import { StoreProfileModule } from './modules/store_profile';
+import { AgeGroup } from './shared/types';
 
-async function startKiosk() {
+async function startKiosk(ageGroup?: AgeGroup) {
   // Initialize StoreProfileModule
   const storeProfile = new StoreProfileModule();
   await storeProfile.initialize();
@@ -31,7 +32,7 @@ async function startKiosk() {
   });
 
   // 1. 연결 시작
-  geminiClient.connect();
+  geminiClient.connect('audio', ageGroup);
 
   // 2. 오디오 레코더 설정 및 시작
   audioRecorder.on('audio_data', (base64Audio) => {
@@ -106,6 +107,19 @@ async function main() {
           cursor: pointer;
           transition: background 0.2s;
         ">Start Kiosk</button>
+        
+        <div style="margin-top: 1rem;">
+          <label for="age-group-select" style="margin-right: 0.5rem; color: #666;">Simulate Age Group:</label>
+          <select id="age-group-select" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ccc;">
+            <option value="">Default (None)</option>
+            <option value="CHILD">CHILD (Slow)</option>
+            <option value="TEENAGER">TEENAGER</option>
+            <option value="YOUNG_ADULT">YOUNG_ADULT</option>
+            <option value="ADULT">ADULT</option>
+            <option value="MIDDLE_AGED">MIDDLE_AGED (Slow)</option>
+            <option value="SENIOR">SENIOR (Slow)</option>
+          </select>
+        </div>
         <button id="stop-btn" style="
           background: #cc0000;
           color: white;
@@ -165,7 +179,11 @@ async function main() {
       if (startBtn) (startBtn as HTMLButtonElement).disabled = true;
       if (startBtn) startBtn.textContent = 'Initializing...';
 
-      kioskInstances = await startKiosk();
+      const ageGroupSelect = document.getElementById('age-group-select') as HTMLSelectElement;
+      const selectedAgeGroup = ageGroupSelect ? ageGroupSelect.value as AgeGroup : undefined;
+
+      addLog(`Starting with Age Group: ${selectedAgeGroup || 'Default'}`);
+      kioskInstances = await startKiosk(selectedAgeGroup);
 
       if (statusArea) {
         statusArea.innerHTML = `
