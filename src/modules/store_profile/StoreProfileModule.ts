@@ -4,6 +4,7 @@ import type {
   StoreInfo,
   MenuCategory,
   MenuItem,
+  MenuOptionGroup,
   MenuOptions,
   Promotion,
   Settings,
@@ -56,23 +57,33 @@ export class StoreProfileModule {
     try {
       await this.repository.initialize();
 
-      // Try to load stored profile first
-      let profile = await this.repository.getStoredProfile();
+      let profile: StoreProfile | null = null;
 
-      // If no stored profile, try to reconstruct from IndexedDB commit history
-      if (!profile) {
-        try {
-          profile = await this.repository.reconstructProfileFromCommits();
-        } catch (error) {
-          // Reconstruction failed (corrupted history, etc.) - continue to fallback
-          console.warn('Failed to reconstruct profile from commits:', error);
-          profile = null;
-        }
-      }
+      // DEV 모드에서는 항상 JSON 파일에서 로드 (캐시 무시)
+      const isDev = import.meta.env.DEV;
 
-      // If still no profile, fall back to fetching from file
-      if (!profile) {
+      if (isDev) {
+        console.log('[StoreProfile] DEV mode: loading profile from JSON file');
         profile = await this.repository.loadProfile();
+      } else {
+        // Production: Try to load stored profile first
+        profile = await this.repository.getStoredProfile();
+
+        // If no stored profile, try to reconstruct from IndexedDB commit history
+        if (!profile) {
+          try {
+            profile = await this.repository.reconstructProfileFromCommits();
+          } catch (error) {
+            // Reconstruction failed (corrupted history, etc.) - continue to fallback
+            console.warn('Failed to reconstruct profile from commits:', error);
+            profile = null;
+          }
+        }
+
+        // If still no profile, fall back to fetching from file
+        if (!profile) {
+          profile = await this.repository.loadProfile();
+        }
       }
 
       if (!this.validator.validate(profile)) {
@@ -274,8 +285,12 @@ export class StoreProfileModule {
     if (query?.available !== undefined) {
       items = items.filter((item) => item.available === query.available);
     }
-    if (query?.hasSet !== undefined) {
-      items = items.filter((item) => item.hasSet === query.hasSet);
+    if (query?.hasOptions !== undefined) {
+      items = items.filter((item) =>
+        query.hasOptions
+          ? item.optionGroups && item.optionGroups.length > 0
+          : !item.optionGroups || item.optionGroups.length === 0
+      );
     }
     if (query?.tags?.length) {
       items = items.filter((item) =>
@@ -319,15 +334,39 @@ export class StoreProfileModule {
     return category ? { ...category, items: [...category.items] } : undefined;
   }
 
-  getMenuOptions(): MenuOptions {
+  /**
+   * @deprecated 하위 호환성을 위해 유지. 새 코드에서는 MenuItem.optionGroups 사용
+   */
+  getMenuOptions(): MenuOptions | undefined {
     this.ensureReady();
     const options = this.getWorkingProfile().menu.options;
+    if (!options) return undefined;
     return {
       setChoices: [...options.setChoices],
       drinks: [...options.drinks],
       sides: [...options.sides],
       customOptions: options.customOptions ? [...options.customOptions] : undefined,
     };
+  }
+
+  /**
+   * 메뉴 이름으로 메뉴 아이템 조회
+   */
+  getMenuItemByName(name: string): MenuItem | undefined {
+    this.ensureReady();
+    for (const category of this.getWorkingProfile().menu.categories) {
+      const item = category.items.find((i) => i.name === name);
+      if (item) return { ...item, optionGroups: item.optionGroups ? [...item.optionGroups] : undefined };
+    }
+    return undefined;
+  }
+
+  /**
+   * 메뉴 아이템의 옵션 그룹 조회
+   */
+  getMenuItemOptions(itemId: string): MenuOptionGroup[] | undefined {
+    const item = this.getMenuItem(itemId);
+    return item?.optionGroups ? [...item.optionGroups] : undefined;
   }
 
   addMenuItem(
@@ -635,7 +674,6 @@ export class StoreProfileModule {
 
   /**
    * Get menu data formatted for LLM system prompt
-   * (Maintains backward compatibility with Realtime.ts)
    * @param options.committedOnly - If true, use only committed profile (ignore staged changes)
    */
   getMenuForLLM(options?: { committedOnly?: boolean }): object {
@@ -644,7 +682,7 @@ export class StoreProfileModule {
       ? this.currentProfile!
       : this.getWorkingProfile();
 
-    // Convert to the original menu.json format for LLM compatibility
+    // 새 구조: 아이템별 optionGroups 포함
     return {
       categories: profile.menu.categories.map((cat) => ({
         id: cat.id,
@@ -655,20 +693,23 @@ export class StoreProfileModule {
             id: item.id,
             name: item.name,
             price: item.price,
-            has_set: item.hasSet,
+            optionGroups: item.optionGroups
+              ?.map((group) => ({
+                id: group.id,
+                name: group.name,
+                required: group.required,
+                multiSelect: group.multiSelect,
+                dependsOn: group.dependsOn,
+                items: group.items
+                  .filter((opt) => opt.available)
+                  .map((opt) => ({
+                    id: opt.id,
+                    name: opt.name,
+                    price: opt.price,
+                  })),
+              })) || null,
           })),
       })),
-      options: {
-        set_choices: profile.menu.options.setChoices
-          .filter((o) => o.available)
-          .map((o) => o.name),
-        drinks: profile.menu.options.drinks
-          .filter((o) => o.available)
-          .map((o) => o.name),
-        sides: profile.menu.options.sides
-          .filter((o) => o.available)
-          .map((o) => o.name),
-      },
     };
   }
 

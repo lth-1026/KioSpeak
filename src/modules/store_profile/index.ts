@@ -10,12 +10,16 @@ export type {
   StoreInfo,
 
   // Menu
+  MenuOptionItem,
+  OptionDependency,
+  MenuOptionGroup,
   MenuItem,
   MenuCategory,
+  Menu,
+  // @deprecated - 하위 호환성
   OptionItem,
   CustomOptionGroup,
   MenuOptions,
-  Menu,
 
   // Promotions
   PromotionType,

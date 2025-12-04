@@ -22,7 +22,7 @@ interface ToolCallLog {
   timestamp: Date;
   name: string;
   args: Record<string, unknown>;
-  result: string;
+  result: unknown;
 }
 
 interface PaymentResult {
@@ -124,7 +124,7 @@ function setupGeminiEventListeners(): void {
   });
 
   // Tool Call
-  geminiClient.on('tool_call', (data: { name: string; args: Record<string, unknown>; result: string }) => {
+  geminiClient.on('tool_call', (data: { name: string; args: Record<string, unknown>; result: unknown }) => {
     toolCallLogs.push({
       timestamp: new Date(),
       name: data.name,
@@ -645,6 +645,21 @@ function renderCartPanel(): void {
   const cart = cartManager?.getCart() || [];
   const total = cartManager?.getTotal() || 0;
 
+  // 옵션 이름들 추출 헬퍼
+  const getOptionNames = (item: { options: { selectedItems: { name: string; price: number }[] }[] }) => {
+    return item.options.flatMap(opt =>
+      opt.selectedItems.map(i => i.price > 0 ? `${i.name}(+${i.price}원)` : i.name)
+    );
+  };
+
+  // 아이템별 총 가격 계산
+  const getItemTotal = (item: { basePrice: number; quantity: number; options: { selectedItems: { price: number }[] }[] }) => {
+    const optionsPrice = item.options.reduce(
+      (sum, opt) => sum + opt.selectedItems.reduce((s, i) => s + i.price, 0), 0
+    );
+    return (item.basePrice + optionsPrice) * item.quantity;
+  };
+
   container.innerHTML = `
     <div class="panel-header">
       🛒 장바구니
@@ -653,15 +668,22 @@ function renderCartPanel(): void {
     <div style="padding: 0.75rem;">
       ${cart.length === 0
         ? '<div style="color: #999; text-align: center; padding: 1rem; font-size: 0.9rem;">비어있음</div>'
-        : cart.map(item => `
-            <div style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
-              <div style="font-weight: bold; font-size: 0.9rem;">${escapeHtml(item.menuName)} x${item.quantity}</div>
-              <div style="font-size: 0.8rem; color: #666;">
-                ${item.price.toLocaleString()}원
-                ${item.options.length > 0 ? `/ ${item.options.join(', ')}` : ''}
+        : cart.map(item => {
+            const optionNames = getOptionNames(item);
+            const itemTotal = getItemTotal(item);
+            return `
+              <div style="padding: 0.5rem 0; border-bottom: 1px solid #eee;">
+                <div style="font-weight: bold; font-size: 0.9rem;">${escapeHtml(item.menuName)} x${item.quantity}</div>
+                <div style="font-size: 0.8rem; color: #666;">
+                  기본 ${item.basePrice.toLocaleString()}원
+                  ${optionNames.length > 0 ? `<br/>옵션: ${optionNames.join(', ')}` : ''}
+                </div>
+                <div style="font-size: 0.85rem; color: #333; text-align: right;">
+                  ${itemTotal.toLocaleString()}원
+                </div>
               </div>
-            </div>
-          `).join('')
+            `;
+          }).join('')
       }
       <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid #333; font-weight: bold; display: flex; justify-content: space-between; font-size: 0.95rem;">
         <span>총액</span>
@@ -680,26 +702,34 @@ function renderToolCallLogs(): void {
     return;
   }
 
-  container.innerHTML = toolCallLogs.slice(-8).reverse().map(log => `
-    <div style="
-      padding: 0.5rem;
-      margin-bottom: 0.5rem;
-      background: #fff3e0;
-      border-radius: 4px;
-      border-left: 3px solid #ff9800;
-      font-size: 0.8rem;
-    ">
-      <div style="font-weight: bold; color: #e65100;">
-        ${log.name}
+  container.innerHTML = toolCallLogs.slice(-8).reverse().map(log => {
+    // 결과를 문자열로 변환
+    const resultStr = typeof log.result === 'object'
+      ? JSON.stringify(log.result, null, 1)
+      : String(log.result);
+    const isSuccess = typeof log.result === 'object' && (log.result as { success?: boolean })?.success;
+
+    return `
+      <div style="
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        background: ${isSuccess ? '#e8f5e9' : '#fff3e0'};
+        border-radius: 4px;
+        border-left: 3px solid ${isSuccess ? '#4caf50' : '#ff9800'};
+        font-size: 0.8rem;
+      ">
+        <div style="font-weight: bold; color: #e65100;">
+          ${log.name}
+        </div>
+        <div style="color: #666; font-family: monospace; font-size: 0.7rem; word-break: break-all; margin-top: 0.25rem;">
+          ${escapeHtml(JSON.stringify(log.args))}
+        </div>
+        <div style="color: #2e7d32; margin-top: 0.25rem; font-size: 0.75rem; white-space: pre-wrap; word-break: break-word;">
+          → ${escapeHtml(resultStr)}
+        </div>
       </div>
-      <div style="color: #666; font-family: monospace; font-size: 0.7rem; word-break: break-all; margin-top: 0.25rem;">
-        ${JSON.stringify(log.args)}
-      </div>
-      <div style="color: #2e7d32; margin-top: 0.25rem; font-size: 0.75rem;">
-        → ${escapeHtml(log.result)}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function renderPaymentResult(): void {

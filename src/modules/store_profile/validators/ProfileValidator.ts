@@ -208,13 +208,16 @@ export class ProfileValidator {
       });
     }
 
-    if (!this.isObject(menu.options)) {
-      this.addError('menu.options', 'Options must be an object');
-    } else {
-      this.validateMenuOptions(
-        menu.options as Record<string, unknown>,
-        'menu.options'
-      );
+    // menu.options is optional (deprecated - use MenuItem.optionGroups instead)
+    if (menu.options !== undefined) {
+      if (!this.isObject(menu.options)) {
+        this.addError('menu.options', 'Options must be an object');
+      } else {
+        this.validateMenuOptions(
+          menu.options as Record<string, unknown>,
+          'menu.options'
+        );
+      }
     }
   }
 

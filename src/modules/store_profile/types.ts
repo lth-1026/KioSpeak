@@ -28,18 +28,43 @@ export interface StoreInfo {
 }
 
 // ============ Menu Types ============
+
+// 옵션 아이템 (개별 옵션 선택지)
+export interface MenuOptionItem {
+  id: string;
+  name: string;
+  price: number; // 추가 가격 (0이면 무료)
+  available: boolean;
+}
+
+// 옵션 그룹 의존성 (조건부 표시)
+export interface OptionDependency {
+  groupId: string; // 의존하는 옵션 그룹 ID
+  optionIds: string[]; // 해당 옵션들 중 하나가 선택되어야 표시
+}
+
+// 옵션 그룹 (메뉴 아이템에 내장)
+export interface MenuOptionGroup {
+  id: string;
+  name: string; // "세트 선택", "사이즈", "음료 선택"
+  required: boolean; // 필수 선택 여부
+  multiSelect: boolean; // 다중 선택 가능 여부
+  maxSelections?: number; // 최대 선택 개수 (multiSelect가 true일 때)
+  dependsOn?: OptionDependency; // 의존성 (조건부 표시)
+  items: MenuOptionItem[];
+}
+
 export interface MenuItem {
   id: string;
   name: string;
   description?: string;
   price: number;
   imageUrl?: string;
-  hasSet: boolean;
-  setPrice?: number;
   calories?: number;
   allergens?: string[];
   available: boolean;
   tags?: string[];
+  optionGroups?: MenuOptionGroup[]; // 아이템별 옵션 그룹
 }
 
 export interface MenuCategory {
@@ -50,6 +75,7 @@ export interface MenuCategory {
   items: MenuItem[];
 }
 
+// @deprecated - 하위 호환성을 위해 유지, 새 코드에서는 MenuItem.optionGroups 사용
 export interface OptionItem {
   id: string;
   name: string;
@@ -57,6 +83,7 @@ export interface OptionItem {
   available: boolean;
 }
 
+// @deprecated - 하위 호환성을 위해 유지, 새 코드에서는 MenuItem.optionGroups 사용
 export interface CustomOptionGroup {
   id: string;
   name: string;
@@ -66,6 +93,7 @@ export interface CustomOptionGroup {
   options: OptionItem[];
 }
 
+// @deprecated - 하위 호환성을 위해 유지, 새 코드에서는 MenuItem.optionGroups 사용
 export interface MenuOptions {
   setChoices: OptionItem[];
   drinks: OptionItem[];
@@ -75,7 +103,7 @@ export interface MenuOptions {
 
 export interface Menu {
   categories: MenuCategory[];
-  options: MenuOptions;
+  options?: MenuOptions; // @deprecated - 하위 호환성을 위해 optional로 변경
 }
 
 // ============ Promotion Types ============
@@ -195,7 +223,7 @@ export interface HistoryEntry {
 export interface MenuItemQuery {
   categoryId?: string;
   available?: boolean;
-  hasSet?: boolean;
+  hasOptions?: boolean; // optionGroups가 있는 메뉴만 필터링
   tags?: string[];
   priceRange?: { min?: number; max?: number };
 }

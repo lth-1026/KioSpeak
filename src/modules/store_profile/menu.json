@@ -3,34 +3,181 @@
     {
       "id": "burger",
       "name": "버거",
+      "displayOrder": 1,
       "items": [
         {
           "id": "bulgogi_burger",
           "name": "불고기 버거",
           "price": 4000,
-          "has_set": true
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "set_choice",
+              "name": "세트 선택",
+              "required": true,
+              "multiSelect": false,
+              "items": [
+                { "id": "single", "name": "단품", "price": 0, "available": true },
+                { "id": "set", "name": "세트", "price": 2500, "available": true }
+              ]
+            },
+            {
+              "id": "drink",
+              "name": "음료 선택",
+              "required": true,
+              "multiSelect": false,
+              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
+              "items": [
+                { "id": "cola", "name": "콜라", "price": 0, "available": true },
+                { "id": "sprite", "name": "사이다", "price": 0, "available": true },
+                { "id": "zero_cola", "name": "제로콜라", "price": 0, "available": true }
+              ]
+            },
+            {
+              "id": "side",
+              "name": "사이드 선택",
+              "required": true,
+              "multiSelect": false,
+              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
+              "items": [
+                { "id": "fries", "name": "감자튀김", "price": 0, "available": true },
+                { "id": "cheese_stick", "name": "치즈스틱", "price": 500, "available": true }
+              ]
+            }
+          ]
         },
         {
           "id": "hanwoo_burger",
           "name": "한우 버거",
           "price": 8000,
-          "has_set": true
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "set_choice",
+              "name": "세트 선택",
+              "required": true,
+              "multiSelect": false,
+              "items": [
+                { "id": "single", "name": "단품", "price": 0, "available": true },
+                { "id": "set", "name": "세트", "price": 3000, "available": true }
+              ]
+            },
+            {
+              "id": "drink",
+              "name": "음료 선택",
+              "required": true,
+              "multiSelect": false,
+              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
+              "items": [
+                { "id": "cola", "name": "콜라", "price": 0, "available": true },
+                { "id": "sprite", "name": "사이다", "price": 0, "available": true },
+                { "id": "zero_cola", "name": "제로콜라", "price": 0, "available": true }
+              ]
+            },
+            {
+              "id": "side",
+              "name": "사이드 선택",
+              "required": true,
+              "multiSelect": false,
+              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
+              "items": [
+                { "id": "fries", "name": "감자튀김", "price": 0, "available": true },
+                { "id": "onion_ring", "name": "어니언링", "price": 500, "available": true },
+                { "id": "cheese_stick", "name": "치즈스틱", "price": 500, "available": true }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "drink",
+      "name": "음료",
+      "displayOrder": 2,
+      "items": [
+        {
+          "id": "cola_single",
+          "name": "콜라",
+          "price": 1500,
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "size",
+              "name": "사이즈",
+              "required": true,
+              "multiSelect": false,
+              "items": [
+                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
+                { "id": "large", "name": "라지", "price": 500, "available": true }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "sprite_single",
+          "name": "사이다",
+          "price": 1500,
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "size",
+              "name": "사이즈",
+              "required": true,
+              "multiSelect": false,
+              "items": [
+                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
+                { "id": "large", "name": "라지", "price": 500, "available": true }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "zero_cola_single",
+          "name": "제로콜라",
+          "price": 1500,
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "size",
+              "name": "사이즈",
+              "required": true,
+              "multiSelect": false,
+              "items": [
+                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
+                { "id": "large", "name": "라지", "price": 500, "available": true }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "side",
+      "name": "사이드",
+      "displayOrder": 3,
+      "items": [
+        {
+          "id": "fries_single",
+          "name": "감자튀김",
+          "price": 2000,
+          "available": true,
+          "optionGroups": null
+        },
+        {
+          "id": "cheese_stick_single",
+          "name": "치즈스틱",
+          "price": 2500,
+          "available": true,
+          "optionGroups": null
+        },
+        {
+          "id": "onion_ring_single",
+          "name": "어니언링",
+          "price": 2500,
+          "available": true,
+          "optionGroups": null
         }
       ]
     }
-  ],
-  "options": {
-    "set_choices": [
-      "세트",
-      "단품"
-    ],
-    "drinks": [
-      "콜라",
-      "사이다"
-    ],
-    "sides": [
-      "감자튀김",
-      "치즈스틱"
-    ]
-  }
+  ]
 }
