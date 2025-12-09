@@ -1,1 +1,3 @@
-사용자가 어린이, 중장년층 또는 고령자입니다. 목소리 속도를 평소보다 천천히 하고, 매우 또박또박 말하세요. 이해하기 쉬운 단어를 사용하세요.
+The customer is a child, middle-aged adult, or senior.
+Speak more slowly than usual and articulate very clearly.
+Use simple, easy-to-understand words.

@@ -106,8 +106,8 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
-    expect(systemInstructionText).toContain('목소리 속도를 평소보다 천천히 하고');
+    expect(systemInstructionText).toContain('child, middle-aged adult, or senior');
+    expect(systemInstructionText).toContain('Speak more slowly');
   });
 
   it('should include speed instruction for SENIOR age group', async () => {
@@ -117,7 +117,7 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
+    expect(systemInstructionText).toContain('child, middle-aged adult, or senior');
   });
 
   it('should include speed instruction for MIDDLE_AGED age group', async () => {
@@ -127,7 +127,7 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
+    expect(systemInstructionText).toContain('child, middle-aged adult, or senior');
   });
 
   it('should NOT include speed instruction for ADULT age group', async () => {
@@ -137,7 +137,7 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).not.toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
+    expect(systemInstructionText).not.toContain('child, middle-aged adult, or senior');
   });
 
   it('should NOT include speed instruction for TEENAGER age group', async () => {
@@ -147,7 +147,7 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).not.toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
+    expect(systemInstructionText).not.toContain('child, middle-aged adult, or senior');
   });
 
   it('should NOT include speed instruction when age group is undefined', async () => {
@@ -157,6 +157,6 @@ describe('GeminiRealtimeClient', () => {
     const connectCall = googleGenAIInstance.live.connect.mock.calls[0][0];
     const systemInstructionText = connectCall.config.systemInstruction.parts[0].text;
 
-    expect(systemInstructionText).not.toContain('사용자가 어린이, 중장년층 또는 고령자입니다');
+    expect(systemInstructionText).not.toContain('child, middle-aged adult, or senior');
   });
 });
