@@ -1,11 +1,12 @@
 // src/modules/llm/GeminiRealtimeClient.ts
 import EventEmitter from 'eventemitter3';
-import { GoogleGenAI, LiveServerMessage, Modality, Session, Tool, Type } from '@google/genai';
+import { GoogleGenAI, LiveServerMessage, Modality, Session } from '@google/genai';
 import { CartManager, CartItem, CartOperationResult } from '../core/CartManager';
 import { StoreProfileModule } from '../store_profile';
 import { MockPaymentService, PaymentMethod } from '../payment';
 import { decode, decodeAudioData } from './utils';
 import { AgeGroup } from '../../shared/types';
+import { buildSystemPrompt, toolDefinitions } from './prompts';
 
 export type ConnectionMode = 'audio' | 'text';
 
@@ -48,157 +49,11 @@ export class GeminiRealtimeClient extends EventEmitter {
   async connect(mode: ConnectionMode = 'audio', ageGroup?: AgeGroup) {
     const model = 'gemini-2.5-flash-native-audio-preview-09-2025';
 
-    const tools: Tool[] = [
-      {
-        functionDeclarations: [
-          {
-            name: "addToCart",
-            description: "장바구니에 메뉴를 추가합니다. 추가 후 cartItemId와 선택해야 할 옵션 그룹 정보를 반환합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                menuName: { type: Type.STRING, description: "추가할 메뉴 이름 (예: 불고기 버거, 콜라)" },
-                quantity: { type: Type.NUMBER, description: "수량 (기본값: 1)" }
-              },
-              required: ["menuName"]
-            }
-          },
-          {
-            name: "selectOption",
-            description: "장바구니 아이템에 옵션을 선택합니다. 의존성이 있는 옵션은 선행 옵션 선택 후에만 선택 가능합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                cartItemId: { type: Type.STRING, description: "장바구니 아이템 ID (addToCart 결과에서 받음)" },
-                groupId: { type: Type.STRING, description: "옵션 그룹 ID (예: set_choice, drink, size)" },
-                optionId: { type: Type.STRING, description: "선택할 옵션 ID (예: set, single, cola, large)" }
-              },
-              required: ["cartItemId", "groupId", "optionId"]
-            }
-          },
-          {
-            name: "updateQuantity",
-            description: "장바구니 아이템의 수량을 변경합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                cartItemId: { type: Type.STRING, description: "장바구니 아이템 ID" },
-                quantity: { type: Type.NUMBER, description: "변경할 수량" }
-              },
-              required: ["cartItemId", "quantity"]
-            }
-          },
-          {
-            name: "removeFromCart",
-            description: "장바구니에서 아이템을 삭제합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                cartItemId: { type: Type.STRING, description: "삭제할 장바구니 아이템 ID" }
-              },
-              required: ["cartItemId"]
-            }
-          },
-          {
-            name: "getCart",
-            description: "현재 장바구니 상태를 조회합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {},
-              required: []
-            }
-          },
-          {
-            name: "getMenu",
-            description: "판매 중인 메뉴 목록을 조회합니다. 대화 시작 시 반드시 호출하여 메뉴를 파악하세요.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {},
-              required: []
-            }
-          },
-          {
-            name: "processPayment",
-            description: "장바구니의 주문을 결제합니다. 고객이 결제를 요청하고 결제 방법을 선택했을 때 호출합니다.",
-            parameters: {
-              type: Type.OBJECT,
-              properties: {
-                method: {
-                  type: Type.STRING,
-                  description: "결제 방법 (CARD: 카드결제, MOBILE: 모바일결제)",
-                  enum: ["CARD", "MOBILE"]
-                }
-              },
-              required: ["method"]
-            }
-          }
-        ]
-      }
-    ];
-
-
-    let speedInstruction = "";
-    if (ageGroup === AgeGroup.CHILD || ageGroup === AgeGroup.MIDDLE_AGED || ageGroup === AgeGroup.SENIOR) {
-      speedInstruction = "사용자가 어린이, 중장년층 또는 고령자입니다. 목소리 속도를 평소보다 천천히 하고, 매우 또박또박 말하세요. 이해하기 쉬운 단어를 사용하세요.";
-    }
+    const tools = toolDefinitions;
 
     const systemInstruction = {
       parts: [{
-        text: `
-당신은 햄버거 가게의 친절한 키오스크 직원입니다.
-${speedInstruction}
-
-[필수: 대화 시작 시 메뉴 조회]
-고객과 대화를 시작할 때 반드시 getMenu를 호출하여 현재 판매 중인 메뉴를 파악하세요.
-메뉴 정보 없이는 절대 주문을 받거나 메뉴를 안내하지 마세요.
-
-[메뉴 구조 이해]
-- 각 메뉴(MenuItem)는 optionGroups를 가질 수 있습니다.
-- optionGroups: 해당 메뉴에서 선택 가능한 옵션들 (세트/단품, 사이즈, 음료 등)
-- dependsOn: 다른 옵션 선택 시에만 표시되는 조건부 옵션
-  예: 음료/사이드 선택은 '세트' 선택 시에만 필요
-
-[주문 흐름 - 반드시 순차적으로!]
-1. 메뉴 확정 → addToCart 호출
-2. addToCart 결과 확인 → cartItemId와 pendingOptions 저장
-3. pendingOptions가 있으면 → 첫 번째 옵션 그룹을 고객에게 물어보기
-4. 고객 응답 → selectOption 호출 (pendingOptions에서 가져온 groupId와 items의 id 사용)
-5. selectOption 결과의 pendingOptions 다시 확인 → 다음 옵션이 있으면 물어보기
-6. pendingOptions가 비어있으면 → 추가 주문 여부 확인
-7. 주문 완료 → getCart로 장바구니 확인 → 결제
-
-중요: 각 함수 호출 후 반드시 결과를 확인하고, 결과에 포함된 정보(cartItemId, pendingOptions의 id들)를 사용하세요.
-
-[중요: 장바구니 조회 먼저]
-수량 변경, 옵션 변경, 삭제 등 기존 장바구니 아이템을 수정하는 요청을 받으면:
-1. 먼저 getCart를 호출하여 현재 장바구니 상태를 확인
-2. 결과에서 해당 메뉴의 cartItemId를 찾기
-3. 찾은 cartItemId로 updateQuantity, selectOption, removeFromCart 호출
-
-예시:
-- "불고기 버거 2개로 바꿔주세요" → getCart → 불고기 버거의 cartItemId 확인 → updateQuantity
-- "세트로 변경해주세요" → getCart → 해당 아이템 cartItemId 확인 → selectOption
-- "콜라 빼주세요" → getCart → 콜라의 cartItemId 확인 → removeFromCart
-
-[대화 규칙]
-1. 사용자가 모호하게 주문하면 구체적인 메뉴를 제안하세요.
-2. 메뉴별로 다른 옵션이 있으니 optionGroups를 확인하세요:
-   - 버거: set_choice(세트/단품) → (세트 시) drink, side 선택
-   - 음료 단품: size(미디엄/라지) 선택
-   - 사이드 단품: 옵션 없음 (바로 장바구니에 추가)
-3. addToCart 결과의 pendingOptions에 있는 옵션만 물어보세요.
-4. 한국어로 자연스럽게 대화하세요.
-5. 결제 시 processPayment 호출 (method: "CARD" 또는 "MOBILE")
-
-[함수 호출 시 주의]
-- 장바구니 수정 작업 전에는 반드시 getCart로 현재 상태 확인
-- addToCart 결과로 받은 cartItemId를 이후 옵션 선택에 사용
-- selectOption 호출 시:
-  * addToCart나 selectOption 결과의 pendingOptions에서 groupId와 optionId를 확인
-  * pendingOptions의 items 배열에 있는 정확한 id 값만 사용 (추측하거나 번역하지 말 것)
-- 품절(available: false) 메뉴/옵션은 주문 불가 안내
-- 옵션 가격이 0보다 크면 고객에게 추가 금액 안내 (예: "치즈스틱은 500원 추가입니다")
-        `
+        text: buildSystemPrompt(ageGroup)
       }]
     };
 
