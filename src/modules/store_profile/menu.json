@@ -36,114 +36,133 @@
           },
           "items": [
             {
+              "id": "cola",
               "name": "콜라",
               "price": 0,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2024/02/28/20240228145257542_2.png",
               "available": true
             },
             {
+              "id": "sprite",
               "name": "사이다",
               "price": 0,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172732913_1.png",
               "available": true
             },
             {
+              "id": "zero_cola",
               "name": "제로슈거콜라",
               "price": 0,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/202303141158073_1.png",
               "available": true
             },
             {
+              "id": "cola_large",
               "name": "콜라(L)",
               "price": 200,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172642133_3.png",
               "available": true
             },
             {
+              "id": "sprite_large",
               "name": "사이다(L)",
               "price": 200,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172751980_5.png",
               "available": true
             },
             {
+              "id": "zero_cola_large",
               "name": "제로슈거콜라 (L,라지)",
               "price": 200,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/20230314120118708_4.png",
               "available": true
             },
             {
+              "id": "protein_drink_cereal",
               "name": "단백질드링크 시리얼맛",
               "price": 900,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/06/13/20250613095802237_9.png",
               "available": true
             },
             {
+              "id": "americano_hot",
               "name": "아메리카노",
               "price": 500,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101000339_9.png",
               "available": true
             },
             {
+              "id": "americano_ice",
               "name": "아이스 아메리카노",
               "price": 500,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102006301_3.png",
               "available": true
             },
             {
+              "id": "americano_ice_large",
               "name": "아이스 아메리카노(L)",
               "price": 1000,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102328943_8.png",
               "available": true
             },
             {
+              "id": "iced_tea",
               "name": "아이스티",
               "price": 300,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091242562_7.png",
               "available": true
             },
             {
+              "id": "iced_tea_large",
               "name": "아이스티 (L,라지)",
               "price": 600,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091302515_7.png",
               "available": true
             },
             {
+              "id": "lemonade",
               "name": "레몬에이드",
               "price": 700,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101144899_1.png",
               "available": true
             },
             {
+              "id": "lemonade_large",
               "name": "레몬에이드 (L,라지)",
               "price": 1000,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102109315_5.png",
               "available": true
             },
             {
+              "id": "hershey_hot_choco",
               "name": "허쉬 핫초코",
               "price": 500,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100733297_9.png",
               "available": true
             },
             {
+              "id": "orange_juice_pet",
               "name": "오렌지주스(PET)",
               "price": 500,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2020/03/26/2020032610450342_0.png",
               "available": true
             },
             {
+              "id": "isis_water",
               "name": "아이시스",
               "price": 0,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2020/02/04/20200204223331171_0.png",
               "available": true
             },
             {
+              "id": "cafe_latte_hot",
               "name": "카페라떼(살균우유)",
               "price": 1300,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100825669_5.png",
               "available": true
             },
             {
+              "id": "cafe_latte_ice",
               "name": "아이스카페라떼(살균우유)",
               "price": 1300,
               "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101201439_7.png",
