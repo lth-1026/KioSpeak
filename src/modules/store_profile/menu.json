@@ -4,178 +4,1271 @@
       "id": "burger",
       "name": "버거",
       "displayOrder": 1,
+      "commonOptionGroups": [
+        {
+          "id": "set_choice",
+          "name": "세트 선택",
+          "required": true,
+          "multiSelect": false,
+          "items": [
+            {
+              "id": "single",
+              "name": "단품",
+              "price": 0,
+              "available": true
+            },
+            {
+              "id": "set",
+              "name": "세트",
+              "price": 2500,
+              "available": true
+            }
+          ]
+        },
+        {
+          "id": "drink",
+          "name": "음료 선택",
+          "required": true,
+          "multiSelect": false,
+          "dependsOn": {
+            "groupId": "set_choice",
+            "optionIds": ["set"]
+          },
+          "items": [
+            {
+              "name": "콜라",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/02/28/20240228145257542_2.png",
+              "available": true
+            },
+            {
+              "name": "사이다",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172732913_1.png",
+              "available": true
+            },
+            {
+              "name": "제로슈거콜라",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/202303141158073_1.png",
+              "available": true
+            },
+            {
+              "name": "콜라(L)",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172642133_3.png",
+              "available": true
+            },
+            {
+              "name": "사이다(L)",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172751980_5.png",
+              "available": true
+            },
+            {
+              "name": "제로슈거콜라 (L,라지)",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/20230314120118708_4.png",
+              "available": true
+            },
+            {
+              "name": "단백질드링크 시리얼맛",
+              "price": 900,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/06/13/20250613095802237_9.png",
+              "available": true
+            },
+            {
+              "name": "아메리카노",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101000339_9.png",
+              "available": true
+            },
+            {
+              "name": "아이스 아메리카노",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102006301_3.png",
+              "available": true
+            },
+            {
+              "name": "아이스 아메리카노(L)",
+              "price": 1000,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102328943_8.png",
+              "available": true
+            },
+            {
+              "name": "아이스티",
+              "price": 300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091242562_7.png",
+              "available": true
+            },
+            {
+              "name": "아이스티 (L,라지)",
+              "price": 600,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091302515_7.png",
+              "available": true
+            },
+            {
+              "name": "레몬에이드",
+              "price": 700,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101144899_1.png",
+              "available": true
+            },
+            {
+              "name": "레몬에이드 (L,라지)",
+              "price": 1000,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102109315_5.png",
+              "available": true
+            },
+            {
+              "name": "허쉬 핫초코",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100733297_9.png",
+              "available": true
+            },
+            {
+              "name": "오렌지주스(PET)",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2020/03/26/2020032610450342_0.png",
+              "available": true
+            },
+            {
+              "name": "아이시스",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2020/02/04/20200204223331171_0.png",
+              "available": true
+            },
+            {
+              "name": "카페라떼(살균우유)",
+              "price": 1300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100825669_5.png",
+              "available": true
+            },
+            {
+              "name": "아이스카페라떼(살균우유)",
+              "price": 1300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101201439_7.png",
+              "available": true
+            }
+          ]
+        },
+        {
+          "id": "dessert",
+          "name": "디저트 선택",
+          "required": true,
+          "multiSelect": false,
+          "dependsOn": {
+            "groupId": "set_choice",
+            "optionIds": ["set"]
+          },
+          "items": [
+            {
+              "id": "potato",
+              "name": "포테이토",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200342965_4.png",
+              "available": true
+            },
+            {
+              "id": "jipo_fry",
+              "name": "쥐포튀김",
+              "price": 2200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/04/15/20250415162337325_8.png",
+              "available": true
+            },
+            {
+              "id": "g_pie_new_habanero_l",
+              "name": "지파이 NEW 하바네로(L)",
+              "price": 3500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/10/31/20251031093246521_6.png",
+              "available": true
+            },
+            {
+              "id": "cheese_stick_800",
+              "name": "치즈스틱",
+              "price": 800,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200451610_3.png",
+              "available": true
+            },
+            {
+              "id": "long_cheese_stick",
+              "name": "롱치즈스틱",
+              "price": 400,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220164604550_2.png",
+              "available": true
+            },
+            {
+              "id": "coleslaw",
+              "name": "코울슬로",
+              "price": 0,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/02/19/20250219202403231_5.png",
+              "available": true
+            },
+            {
+              "id": "new_chicken_nugget",
+              "name": "NEW 치킨너겟",
+              "price": 1100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120195357957_4.png",
+              "available": true
+            },
+            {
+              "id": "potato_l",
+              "name": "포테이토(L)",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200401294_9.png",
+              "available": true
+            },
+            {
+              "id": "seasoned_fries",
+              "name": "양념감자",
+              "price": 600,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200429258_0.png",
+              "available": true,
+              "optionGroups": [
+                {
+                  "id": "seasoning_change",
+                  "name": "시즈닝변경",
+                  "required": false,
+                  "multiSelect": false,
+                  "items": [
+                    {
+                      "id": "onion-seasoning",
+                      "name": "어니언시즈닝",
+                      "price": 0,
+                      "available": true
+                    },
+                    {
+                      "id": "cheese-seasoning",
+                      "name": "치즈시즈닝",
+                      "price": 0,
+                      "available": true
+                    },
+                    {
+                      "id": "chili-seasoning",
+                      "name": "칠리시즈닝",
+                      "price": 0,
+                      "available": true
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "g_pie_savory",
+              "name": "지파이 고소한맛",
+              "price": 2500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2020/01/02/20200102234910830_0.png",
+              "available": true
+            },
+            {
+              "id": "protein_chip_sweetcorn",
+              "name": "단백질칩 스위트콘맛",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/06/13/20250613095748122_8.png",
+              "available": true
+            },
+            {
+              "id": "whole_squid_ring",
+              "name": "통오징어링",
+              "price": 800,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/10/20230210180512639_0.png",
+              "available": true
+            },
+            {
+              "id": "chicken_leg_1",
+              "name": "치킨다리 1조각",
+              "price": 900,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/10/30/20241030191751716_5.png",
+              "available": true
+            },
+            {
+              "id": "fire_wing_2",
+              "name": "화이어윙 2조각",
+              "price": 1200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621174907432_6.png",
+              "available": true
+            },
+            {
+              "id": "chicken_fillet_2",
+              "name": "치킨휠레 2조각",
+              "price": 1100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165526496_9.png",
+              "available": true
+            },
+            {
+              "id": "sundae_hershey_choco",
+              "name": "선데 허쉬초코",
+              "price": 300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132401853_0.png",
+              "available": true
+            },
+            {
+              "id": "sundae_strawberry",
+              "name": "선데아이스크림 스트로베리",
+              "price": 300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132414156_0.png",
+              "available": true
+            },
+            {
+              "id": "sundae_plain",
+              "name": "선데아이스크림 플레인",
+              "price": 100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132349844_6.png",
+              "available": true
+            },
+            {
+              "id": "tornado_choco_cookie",
+              "name": "토네이도 초코쿠키",
+              "price": 1200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132322744_9.png",
+              "available": true
+            },
+            {
+              "id": "tornado_strawberry",
+              "name": "토네이도 스트로베리",
+              "price": 1200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132336418_0.png",
+              "available": true
+            },
+            {
+              "id": "tornado_double_choco",
+              "name": "토네이도 더블초코",
+              "price": 1200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132309707_2.png",
+              "available": true
+            },
+            {
+              "id": "tornado_mango_jelly",
+              "name": "토네이도 망고젤리",
+              "price": 1200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132239130_5.png",
+              "available": true
+            },
+            {
+              "id": "seasoned_nugget",
+              "name": "양념너겟",
+              "price": 1300,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120195418270_3.png",
+              "available": true,
+              "optionGroups": [
+                {
+                  "id": "seasoning_change",
+                  "name": "시즈닝변경",
+                  "required": false,
+                  "multiSelect": false,
+                  "items": [
+                    {
+                      "id": "onion-seasoning",
+                      "name": "어니언시즈닝",
+                      "price": 0,
+                      "available": true
+                    },
+                    {
+                      "id": "cheese-seasoning",
+                      "name": "치즈시즈닝",
+                      "price": 0,
+                      "available": true
+                    },
+                    {
+                      "id": "chili-seasoning",
+                      "name": "칠리시즈닝",
+                      "price": 0,
+                      "available": true
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
       "items": [
         {
-          "id": "bulgogi_burger",
-          "name": "불고기 버거",
-          "price": 4000,
+          "id": "mozzarella_burger_tomato_basil",
+          "name": "모짜렐라버거 토마토바질",
+          "price": 9100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/15/20250115162931395_8.png",
+          "available": true
+        },
+        {
+          "id": "mozzarella_burger_balsamic_basil",
+          "name": "모짜렐라버거 발사믹바질",
+          "price": 9100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/15/20250115163300416_3.png",
+          "available": true
+        },
+        {
+          "id": "jeonju_bibim_rice_burger",
+          "name": "전주 비빔라이스 버거",
+          "price": 7300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/06/20230206161110397_3.png",
+          "available": true
+        },
+        {
+          "id": "ria_shrimp_bacon",
+          "name": "리아 새우 베이컨",
+          "price": 6100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/08/11/20230811170344897_5.png",
+          "available": true
+        },
+        {
+          "id": "ria_bulgogi_bacon",
+          "name": "리아 불고기 베이컨",
+          "price": 6100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/07/12/20230712164739139_7.png",
+          "available": true
+        },
+        {
+          "id": "double_classic_cheese_burger",
+          "name": "더블 클래식치즈버거",
+          "price": 7200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/21/20230321152358223_1.png",
+          "available": true
+        },
+        {
+          "id": "double_chicken_burger_n",
+          "name": "더블 치킨버거(N)",
+          "price": 5800,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/12/03/20251203084906466_7.png",
+          "available": true
+        },
+        {
+          "id": "double_chicken_burger",
+          "name": "더블 치킨버거",
+          "price": 5800,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/21/20230321152101291_2.png",
+          "available": true
+        },
+        {
+          "id": "double_teriyaki_burger",
+          "name": "더블 데리버거",
+          "price": 5000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/21/20230321151944859_2.png",
+          "available": true
+        },
+        {
+          "id": "double_hanwoo_bulgogi_burger",
+          "name": "더블 한우불고기버거",
+          "price": 13000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2022/06/22/202206221401250_4.png",
+          "available": true
+        },
+        {
+          "id": "hanwoo_bulgogi_burger",
+          "name": "한우불고기버거",
+          "price": 9000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/10/20230210102118259_1.png",
+          "available": true
+        },
+        {
+          "id": "double_x2_burger",
+          "name": "더블엑스투버거",
+          "price": 7200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/2019122016353324_7.png",
+          "available": true
+        },
+        {
+          "id": "ria_bulgogi_double_bigbul",
+          "name": "리아 불고기 더블(빅불)",
+          "price": 7600,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220163556949_8.png",
+          "available": true
+        },
+        {
+          "id": "new_double_miracle_burger",
+          "name": "NEW 더블 미라클버거",
+          "price": 7200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/10/16/20251016134709789_6.png",
+          "available": true
+        },
+        {
+          "id": "new_miracle_burger",
+          "name": "NEW 미라클버거",
+          "price": 5700,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/10/16/20251016134637371_3.png",
+          "available": true
+        },
+        {
+          "id": "mozzarella_in_the_burger_bacon",
+          "name": "모짜렐라 인 더 버거 베이컨",
+          "price": 8000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/08/20230308094003916_1.png",
+          "available": true
+        },
+        {
+          "id": "hot_crispy_chicken_burger",
+          "name": "핫크리스피치킨버거",
+          "price": 6200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621174724947_5.png",
+          "available": true
+        },
+        {
+          "id": "ria_square_shrimp_double",
+          "name": "리아 사각새우 더블",
+          "price": 6100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2020/12/31/20201231115111151_3.png",
+          "available": true
+        },
+        {
+          "id": "classic_cheese_burger",
+          "name": "클래식치즈버거",
+          "price": 5500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2022/05/19/20220519092203878_5.png",
+          "available": true
+        },
+        {
+          "id": "ria_bulgogi",
+          "name": "리아 불고기",
+          "price": 5000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2021/07/23/20210723103735816_8.png",
+          "available": true
+        },
+        {
+          "id": "ria_shrimp",
+          "name": "리아 새우",
+          "price": 5000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220163836176_9.png",
+          "available": true
+        },
+        {
+          "id": "chicken_burger_n",
+          "name": "치킨버거(N)",
+          "price": 4300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/12/03/20251203084852773_5.png",
+          "available": true
+        },
+        {
+          "id": "chicken_burger",
+          "name": "치킨버거",
+          "price": 4300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220163929389_1.png",
+          "available": true
+        },
+        {
+          "id": "teriyaki_burger",
+          "name": "데리버거",
+          "price": 3700,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220164005629_3.png",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "chicken",
+      "name": "치킨",
+      "displayOrder": 2,
+      "commonOptionGroups": [
+        {
+          "id": "chicken_extra",
+          "name": "추가 옵션",
+          "required": false,
+          "multiSelect": false,
+          "items": [
+            {
+              "id": "none",
+              "name": "선택안함",
+              "price": 0,
+              "available": true
+            },
+            {
+              "id": "creamy_garlic_sauce",
+              "name": "크리미 마늘소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172153232_9.png",
+              "available": true
+            },
+            {
+              "id": "creamy_seasoned_sauce",
+              "name": "크리미 양념소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172231831_6.png",
+              "available": true
+            },
+            {
+              "id": "mustard_sauce",
+              "name": "머스타드소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170050701_5.png",
+              "available": true
+            },
+            {
+              "id": "teriyaki_sauce",
+              "name": "데리야끼소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170031819_5.png",
+              "available": true
+            },
+            {
+              "id": "onion_seasoning",
+              "name": "어니언시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105532360_7.png",
+              "available": true
+            },
+            {
+              "id": "cheese_seasoning",
+              "name": "치즈시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105546324_0.png",
+              "available": true
+            },
+            {
+              "id": "chili_seasoning",
+              "name": "칠리시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105557961_4.png",
+              "available": true
+            },
+            {
+              "id": "honey_mustard",
+              "name": "허니머스타드",
+              "price": 100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140226145_9.png",
+              "available": true
+            },
+            {
+              "id": "sweet_sour",
+              "name": "스위트앤샤워",
+              "price": 100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140250666_3.png",
+              "available": true
+            }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "id": "boneless_chicken_full_pack_22",
+          "name": "순살치킨 풀팩(22조각)",
+          "price": 17500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165904235_1.png",
+          "available": true
+        },
+        {
+          "id": "boneless_chicken_half_pack_11",
+          "name": "순살치킨 하프팩(11조각)",
+          "price": 10500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165930895_6.png",
+          "available": true
+        },
+        {
+          "id": "fire_wing_4",
+          "name": "화이어윙 4조각",
+          "price": 5500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621174922240_8.png",
+          "available": true
+        },
+        {
+          "id": "chicken_fillet_4",
+          "name": "치킨휠레 4조각",
+          "price": 5300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165353371_8.png",
+          "available": true
+        },
+        {
+          "id": "fire_wing_2",
+          "name": "화이어윙 2조각",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621175453874_9.png",
+          "available": true
+        },
+        {
+          "id": "chicken_fillet_2",
+          "name": "치킨휠레 2조각",
+          "price": 3100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2020/11/03/20201103152232421_6.png",
+          "available": true
+        },
+        {
+          "id": "chicken_leg_1",
+          "name": "치킨다리 1조각",
+          "price": 2900,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/10/30/20241030191751716_5.png",
+          "available": true
+        }
+      ]
+    },
+    {
+      "id": "dessert",
+      "name": "디저트",
+      "displayOrder": 3,
+      "items": [
+        {
+          "id": "jwipo-fried",
+          "name": "쥐포튀김",
+          "price": 4200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/04/15/20250415162337325_8.png",
+          "available": true
+        },
+        {
+          "id": "seasoned-nugget",
+          "name": "양념너겟",
+          "price": 3300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120195418270_3.png",
           "available": true,
           "optionGroups": [
             {
-              "id": "set_choice",
-              "name": "세트 선택",
-              "required": true,
+              "id": "seasoning_change",
+              "name": "시즈닝변경",
+              "required": false,
               "multiSelect": false,
               "items": [
-                { "id": "single", "name": "단품", "price": 0, "available": true },
-                { "id": "set", "name": "세트", "price": 2500, "available": true }
-              ]
-            },
-            {
-              "id": "drink",
-              "name": "음료 선택",
-              "required": true,
-              "multiSelect": false,
-              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
-              "items": [
-                { "id": "cola", "name": "콜라", "price": 0, "available": true },
-                { "id": "sprite", "name": "사이다", "price": 0, "available": true },
-                { "id": "zero_cola", "name": "제로콜라", "price": 0, "available": true }
-              ]
-            },
-            {
-              "id": "side",
-              "name": "사이드 선택",
-              "required": true,
-              "multiSelect": false,
-              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
-              "items": [
-                { "id": "fries", "name": "감자튀김", "price": 0, "available": true },
-                { "id": "cheese_stick", "name": "치즈스틱", "price": 500, "available": true }
+                {
+                  "id": "onion-seasoning",
+                  "name": "어니언시즈닝",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "cheese-seasoning",
+                  "name": "치즈시즈닝",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "chili-seasoning",
+                  "name": "칠리시즈닝",
+                  "price": 0,
+                  "available": true
+                }
               ]
             }
           ]
         },
         {
-          "id": "hanwoo_burger",
-          "name": "한우 버거",
-          "price": 8000,
+          "id": "new-chicken-nugget",
+          "name": "NEW 치킨너겟",
+          "price": 3100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120195357957_4.png",
+          "available": true
+        },
+        {
+          "id": "potato",
+          "name": "포테이토",
+          "price": 2000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200342965_4.png",
+          "available": true
+        },
+        {
+          "id": "potato-large",
+          "name": "포테이토(L)",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200401294_9.png",
+          "available": true
+        },
+        {
+          "id": "seasoned-fries",
+          "name": "양념감자",
+          "price": 2600,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200429258_0.png",
           "available": true,
           "optionGroups": [
             {
-              "id": "set_choice",
-              "name": "세트 선택",
-              "required": true,
+              "id": "seasoning_change",
+              "name": "시즈닝변경",
+              "required": false,
               "multiSelect": false,
               "items": [
-                { "id": "single", "name": "단품", "price": 0, "available": true },
-                { "id": "set", "name": "세트", "price": 3000, "available": true }
-              ]
-            },
-            {
-              "id": "drink",
-              "name": "음료 선택",
-              "required": true,
-              "multiSelect": false,
-              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
-              "items": [
-                { "id": "cola", "name": "콜라", "price": 0, "available": true },
-                { "id": "sprite", "name": "사이다", "price": 0, "available": true },
-                { "id": "zero_cola", "name": "제로콜라", "price": 0, "available": true }
-              ]
-            },
-            {
-              "id": "side",
-              "name": "사이드 선택",
-              "required": true,
-              "multiSelect": false,
-              "dependsOn": { "groupId": "set_choice", "optionIds": ["set"] },
-              "items": [
-                { "id": "fries", "name": "감자튀김", "price": 0, "available": true },
-                { "id": "onion_ring", "name": "어니언링", "price": 500, "available": true },
-                { "id": "cheese_stick", "name": "치즈스틱", "price": 500, "available": true }
+                {
+                  "id": "onion-seasoning",
+                  "name": "어니언시즈닝",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "cheese-seasoning",
+                  "name": "치즈시즈닝",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "chili-seasoning",
+                  "name": "칠리시즈닝",
+                  "price": 0,
+                  "available": true
+                }
               ]
             }
           ]
+        },
+        {
+          "id": "whole-squid-ring",
+          "name": "통오징어링",
+          "price": 2800,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/10/20230210180512639_0.png",
+          "available": true
+        },
+        {
+          "id": "cheese-stick",
+          "name": "치즈스틱",
+          "price": 2800,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/11/20/20241120200451610_3.png",
+          "available": true
+        },
+        {
+          "id": "long-cheese-stick",
+          "name": "롱치즈스틱",
+          "price": 2400,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220164604550_2.png",
+          "available": true
+        },
+        {
+          "id": "coleslaw",
+          "name": "코울슬로",
+          "price": 1900,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/02/19/20250219202403231_5.png",
+          "available": true
+        },
+        {
+          "id": "z-pa-i-new-habanero-large",
+          "name": "지파이 NEW 하바네로(L)",
+          "price": 5500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/10/31/20251031093246521_6.png",
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "zpai_extra",
+              "name": "추가 옵션",
+              "required": false,
+              "multiSelect": false,
+              "items": [
+                {
+                  "id": "none",
+                  "name": "선택안함",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "creamy_garlic_sauce",
+                  "name": "크리미 마늘소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172153232_9.png",
+                  "available": true
+                },
+                {
+                  "id": "creamy_seasoned_sauce",
+                  "name": "크리미 양념소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172231831_6.png",
+                  "available": true
+                },
+                {
+                  "id": "mustard_sauce",
+                  "name": "머스타드소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170050701_5.png",
+                  "available": true
+                },
+                {
+                  "id": "teriyaki_sauce",
+                  "name": "데리야끼소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170031819_5.png",
+                  "available": true
+                },
+                {
+                  "id": "onion_seasoning",
+                  "name": "어니언시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105532360_7.png",
+                  "available": true
+                },
+                {
+                  "id": "cheese_seasoning",
+                  "name": "치즈시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105546324_0.png",
+                  "available": true
+                },
+                {
+                  "id": "chili_seasoning",
+                  "name": "칠리시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105557961_4.png",
+                  "available": true
+                },
+                {
+                  "id": "honey_mustard",
+                  "name": "허니머스타드",
+                  "price": 100,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140226145_9.png",
+                  "available": true
+                },
+                {
+                  "id": "sweet_sour",
+                  "name": "스위트앤샤워",
+                  "price": 100,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140250666_3.png",
+                  "available": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "z-pa-i-savory-small",
+          "name": "지파이 고소한맛(S)",
+          "price": 4500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165208212_3.png",
+          "available": true,
+          "optionGroups": [
+            {
+              "id": "zpai_extra",
+              "name": "추가 옵션",
+              "required": false,
+              "multiSelect": false,
+              "items": [
+                {
+                  "id": "none",
+                  "name": "선택안함",
+                  "price": 0,
+                  "available": true
+                },
+                {
+                  "id": "creamy_garlic_sauce",
+                  "name": "크리미 마늘소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172153232_9.png",
+                  "available": true
+                },
+                {
+                  "id": "creamy_seasoned_sauce",
+                  "name": "크리미 양념소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172231831_6.png",
+                  "available": true
+                },
+                {
+                  "id": "mustard_sauce",
+                  "name": "머스타드소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170050701_5.png",
+                  "available": true
+                },
+                {
+                  "id": "teriyaki_sauce",
+                  "name": "데리야끼소스",
+                  "price": 500,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170031819_5.png",
+                  "available": true
+                },
+                {
+                  "id": "onion_seasoning",
+                  "name": "어니언시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105532360_7.png",
+                  "available": true
+                },
+                {
+                  "id": "cheese_seasoning",
+                  "name": "치즈시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105546324_0.png",
+                  "available": true
+                },
+                {
+                  "id": "chili_seasoning",
+                  "name": "칠리시즈닝",
+                  "price": 200,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105557961_4.png",
+                  "available": true
+                },
+                {
+                  "id": "honey_mustard",
+                  "name": "허니머스타드",
+                  "price": 100,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140226145_9.png",
+                  "available": true
+                },
+                {
+                  "id": "sweet_sour",
+                  "name": "스위트앤샤워",
+                  "price": 100,
+                  "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140250666_3.png",
+                  "available": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "protein-chip-sweetcorn",
+          "name": "단백질칩 스위트콘맛",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/06/13/20250613095748122_8.png",
+          "available": true
+        },
+        {
+          "id": "creamy-garlic-sauce",
+          "name": "크리미 마늘소스",
+          "price": 500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172153232_9.png",
+          "available": true
+        },
+        {
+          "id": "creamy-seasoned-sauce",
+          "name": "크리미 양념소스",
+          "price": 500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172231831_6.png",
+          "available": true
+        },
+        {
+          "id": "teriyaki-sauce",
+          "name": "데리야끼소스",
+          "price": 500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170031819_5.png",
+          "available": true
+        },
+        {
+          "id": "mustard-sauce",
+          "name": "머스타드소스",
+          "price": 500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170050701_5.png",
+          "available": true
+        },
+        {
+          "id": "honey-mustard",
+          "name": "허니머스타드",
+          "price": 100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140226145_9.png",
+          "available": true
+        },
+        {
+          "id": "sweet-and-sour",
+          "name": "스위트앤샤워",
+          "price": 100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140250666_3.png",
+          "available": true
+        },
+        {
+          "id": "cheese-seasoning",
+          "name": "치즈시즈닝",
+          "price": 200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105546324_0.png",
+          "available": true
+        },
+        {
+          "id": "onion-seasoning",
+          "name": "어니언시즈닝",
+          "price": 200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105532360_7.png",
+          "available": true
+        },
+        {
+          "id": "chili-seasoning",
+          "name": "칠리시즈닝",
+          "price": 200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105557961_4.png",
+          "available": true
+        },
+        {
+          "id": "jambalaya-sauce",
+          "name": "잠발라야소스",
+          "price": 300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2022/05/10/20220510151637317_8.png",
+          "available": true
         }
       ]
     },
     {
       "id": "drink",
       "name": "음료",
-      "displayOrder": 2,
+      "displayOrder": 4,
       "items": [
         {
-          "id": "cola_single",
+          "id": "lemonade_large",
+          "name": "레몬에이드 (L,라지)",
+          "price": 3000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102109315_5.png",
+          "available": true
+        },
+        {
+          "id": "iced_tea_large",
+          "name": "아이스티 (L,라지)",
+          "price": 2600,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091302515_7.png",
+          "available": true
+        },
+        {
+          "id": "cola_large",
+          "name": "콜라(L)",
+          "price": 2200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172642133_3.png",
+          "available": true
+        },
+        {
+          "id": "sprite_large",
+          "name": "사이다(L)",
+          "price": 2200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172751980_5.png",
+          "available": true
+        },
+        {
+          "id": "zero_cola_large",
+          "name": "제로슈거콜라 (L,라지)",
+          "price": 2200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/20230314120118708_4.png",
+          "available": true
+        },
+        {
+          "id": "cola",
           "name": "콜라",
-          "price": 1500,
-          "available": true,
-          "optionGroups": [
-            {
-              "id": "size",
-              "name": "사이즈",
-              "required": true,
-              "multiSelect": false,
-              "items": [
-                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
-                { "id": "large", "name": "라지", "price": 500, "available": true }
-              ]
-            }
-          ]
+          "price": 2000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/02/28/20240228145257542_2.png",
+          "available": true
         },
         {
-          "id": "sprite_single",
+          "id": "sprite",
           "name": "사이다",
-          "price": 1500,
-          "available": true,
-          "optionGroups": [
-            {
-              "id": "size",
-              "name": "사이즈",
-              "required": true,
-              "multiSelect": false,
-              "items": [
-                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
-                { "id": "large", "name": "라지", "price": 500, "available": true }
-              ]
-            }
-          ]
+          "price": 2000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/05/08/20240508172732913_1.png",
+          "available": true
         },
         {
-          "id": "zero_cola_single",
-          "name": "제로콜라",
-          "price": 1500,
-          "available": true,
-          "optionGroups": [
-            {
-              "id": "size",
-              "name": "사이즈",
-              "required": true,
-              "multiSelect": false,
-              "items": [
-                { "id": "medium", "name": "미디엄", "price": 0, "available": true },
-                { "id": "large", "name": "라지", "price": 500, "available": true }
-              ]
-            }
-          ]
+          "id": "zero_cola",
+          "name": "제로슈거콜라",
+          "price": 2000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/14/202303141158073_1.png",
+          "available": true
+        },
+        {
+          "id": "americano_hot",
+          "name": "아메리카노",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101000339_9.png",
+          "available": true
+        },
+        {
+          "id": "americano_ice",
+          "name": "아이스 아메리카노",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102006301_3.png",
+          "available": true
+        },
+        {
+          "id": "americano_ice_large",
+          "name": "아이스 아메리카노(L)",
+          "price": 3000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124102328943_8.png",
+          "available": true
+        },
+        {
+          "id": "cafe_latte_hot",
+          "name": "카페라떼(살균우유)",
+          "price": 3300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100825669_5.png",
+          "available": true
+        },
+        {
+          "id": "cafe_latte_ice",
+          "name": "아이스카페라떼(살균우유)",
+          "price": 3300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101201439_7.png",
+          "available": true
+        },
+        {
+          "id": "hershey_hot_choco",
+          "name": "허쉬 핫초코",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124100733297_9.png",
+          "available": true
+        },
+        {
+          "id": "lemonade",
+          "name": "레몬에이드",
+          "price": 2700,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/01/24/20250124101144899_1.png",
+          "available": true
+        },
+        {
+          "id": "orange_juice_pet",
+          "name": "오렌지주스(PET)",
+          "price": 2500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2020/03/26/2020032610450342_0.png",
+          "available": true
+        },
+        {
+          "id": "iced_tea",
+          "name": "아이스티",
+          "price": 2300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/08/20250908091242562_7.png",
+          "available": true
+        },
+        {
+          "id": "protein_drink_cereal",
+          "name": "단백질드링크 시리얼맛",
+          "price": 2900,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/06/13/20250613095802237_9.png",
+          "available": true
+        },
+        {
+          "id": "isis_water",
+          "name": "아이시스",
+          "price": 1000,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2020/02/04/20200204223331171_0.png",
+          "available": true
         }
       ]
     },
     {
-      "id": "side",
-      "name": "사이드",
-      "displayOrder": 3,
+      "id": "ice_shot",
+      "name": "아이스샷",
+      "displayOrder": 5,
       "items": [
         {
-          "id": "fries_single",
-          "name": "감자튀김",
-          "price": 2000,
-          "available": true,
-          "optionGroups": null
+          "id": "tornado_mango_jelly",
+          "name": "토네이도 망고젤리",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132239130_5.png",
+          "available": true
         },
         {
-          "id": "cheese_stick_single",
-          "name": "치즈스틱",
-          "price": 2500,
-          "available": true,
-          "optionGroups": null
+          "id": "tornado_choco_cookie",
+          "name": "토네이도 초코쿠키",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132322744_9.png",
+          "available": true
         },
         {
-          "id": "onion_ring_single",
-          "name": "어니언링",
-          "price": 2500,
-          "available": true,
-          "optionGroups": null
+          "id": "tornado_strawberry",
+          "name": "토네이도 스트로베리",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132336418_0.png",
+          "available": true
+        },
+        {
+          "id": "tornado_double_choco",
+          "name": "토네이도 더블초코",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132309707_2.png",
+          "available": true
+        },
+        {
+          "id": "sundae_hershey_choco",
+          "name": "선데 허쉬초코",
+          "price": 2300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132401853_0.png",
+          "available": true
+        },
+        {
+          "id": "sundae_plain",
+          "name": "선데아이스크림 플레인",
+          "price": 2100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132349844_6.png",
+          "available": true
+        },
+        {
+          "id": "sundae_strawberry",
+          "name": "선데아이스크림 스트로베리",
+          "price": 2300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132414156_0.png",
+          "available": true
+        },
+        {
+          "id": "soft_cone",
+          "name": "소프트콘",
+          "price": 1300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132436353_0.png",
+          "available": true
         }
       ]
     }

@@ -278,7 +278,12 @@ export class StoreProfileModule {
 
     for (const category of menu.categories) {
       if (query?.categoryId && category.id !== query.categoryId) continue;
-      items = items.concat(category.items);
+
+      const categoryItems = category.items.map((item) =>
+        this.resolveItem(item, category)
+      );
+
+      items = items.concat(categoryItems);
     }
 
     // Apply filters
@@ -313,7 +318,9 @@ export class StoreProfileModule {
     this.ensureReady();
     for (const category of this.getWorkingProfile().menu.categories) {
       const item = category.items.find((i) => i.id === itemId);
-      if (item) return { ...item };
+      if (item) {
+        return this.resolveItem(item, category);
+      }
     }
     return undefined;
   }
@@ -322,7 +329,7 @@ export class StoreProfileModule {
     this.ensureReady();
     return this.getWorkingProfile().menu.categories.map((c) => ({
       ...c,
-      items: [...c.items],
+      items: c.items.map((item) => this.resolveItem(item, c)),
     }));
   }
 
@@ -331,7 +338,12 @@ export class StoreProfileModule {
     const category = this.getWorkingProfile().menu.categories.find(
       (c) => c.id === categoryId
     );
-    return category ? { ...category, items: [...category.items] } : undefined;
+    if (!category) return undefined;
+
+    return {
+      ...category,
+      items: category.items.map((item) => this.resolveItem(item, category)),
+    };
   }
 
   /**
@@ -356,7 +368,9 @@ export class StoreProfileModule {
     this.ensureReady();
     for (const category of this.getWorkingProfile().menu.categories) {
       const item = category.items.find((i) => i.name === name);
-      if (item) return { ...item, optionGroups: item.optionGroups ? [...item.optionGroups] : undefined };
+      if (item) {
+        return this.resolveItem(item, category);
+      }
     }
     return undefined;
   }
@@ -365,7 +379,7 @@ export class StoreProfileModule {
    * 메뉴 아이템의 옵션 그룹 조회
    */
   getMenuItemOptions(itemId: string): MenuOptionGroup[] | undefined {
-    const item = this.getMenuItem(itemId);
+    const item = this.getMenuItem(itemId); // getMenuItem already returns merged options
     return item?.optionGroups ? [...item.optionGroups] : undefined;
   }
 
@@ -682,33 +696,36 @@ export class StoreProfileModule {
       ? this.currentProfile!
       : this.getWorkingProfile();
 
-    // 새 구조: 아이템별 optionGroups 포함
+    // 새 구조: 아이템별 optionGroups 포함 (Effective Option Groups)
     return {
       categories: profile.menu.categories.map((cat) => ({
         id: cat.id,
         name: cat.name,
         items: cat.items
           .filter((item) => item.available)
-          .map((item) => ({
-            id: item.id,
-            name: item.name,
-            price: item.price,
-            optionGroups: item.optionGroups
-              ?.map((group) => ({
-                id: group.id,
-                name: group.name,
-                required: group.required,
-                multiSelect: group.multiSelect,
-                dependsOn: group.dependsOn,
-                items: group.items
-                  .filter((opt) => opt.available)
-                  .map((opt) => ({
-                    id: opt.id,
-                    name: opt.name,
-                    price: opt.price,
-                  })),
-              })) || null,
-          })),
+          .map((item) => {
+            const effectiveGroups = this.resolveCommonOptionGroups(item, cat);
+            return {
+              id: item.id,
+              name: item.name,
+              price: item.price,
+              optionGroups: effectiveGroups
+                ?.map((group) => ({
+                  id: group.id,
+                  name: group.name,
+                  required: group.required,
+                  multiSelect: group.multiSelect,
+                  dependsOn: group.dependsOn,
+                  items: group.items
+                    .filter((opt) => opt.available)
+                    .map((opt) => ({
+                      id: opt.id,
+                      name: opt.name,
+                      price: opt.price,
+                    })),
+                })) || null,
+            };
+          }),
       })),
     };
   }
@@ -723,6 +740,49 @@ export class StoreProfileModule {
 
   private getWorkingProfile(): StoreProfile {
     return this.workingProfile!;
+  }
+
+  /**
+   * Resolve common option groups from category and merge with item-specific groups
+   */
+  private resolveCommonOptionGroups(
+    item: MenuItem,
+    category: MenuCategory
+  ): MenuOptionGroup[] {
+    const commonGroups = category.commonOptionGroups || [];
+    const itemGroups = item.optionGroups || [];
+
+    // If no common groups, return item groups (or empty)
+    if (commonGroups.length === 0) {
+      return itemGroups;
+    }
+
+    // Start with common groups
+    const result: MenuOptionGroup[] = [...commonGroups];
+
+    // Merge item groups
+    for (const itemGroup of itemGroups) {
+      const existingIndex = result.findIndex((g) => g.id === itemGroup.id);
+      if (existingIndex !== -1) {
+        // Override/Replace
+        result[existingIndex] = itemGroup;
+      } else {
+        // Append
+        result.push(itemGroup);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Resolve a single item with its option groups
+   */
+  private resolveItem(item: MenuItem, category: MenuCategory): MenuItem {
+    return {
+      ...item,
+      optionGroups: this.resolveCommonOptionGroups(item, category),
+    };
   }
 
   private mergeChanges(
