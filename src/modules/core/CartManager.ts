@@ -111,6 +111,9 @@ export class CartManager extends EventEmitter {
 		this.cart.push(cartItem);
 		console.log(`[CartManager] 장바구니 추가: ${menuName} ${quantity}개 (${menuItem.price}원)`);
 
+		// UI 즉시 업데이트 (필수 옵션 선택 전이라도 장바구니에는 표시)
+		this.emitChange();
+
 		// 필수 옵션 확인
 		const pendingOptions = this.getPendingRequiredOptions(cartItemId);
 
@@ -123,7 +126,6 @@ export class CartManager extends EventEmitter {
 			};
 		}
 
-		this.emitChange();
 		return {
 			success: true,
 			message: `장바구니에 ${menuName} ${quantity}개가 담겼습니다.`,
