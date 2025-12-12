@@ -544,9 +544,144 @@
       ]
     },
     {
+      "id": "chicken",
+      "name": "치킨",
+      "displayOrder": 3,
+      "commonOptionGroups": [
+        {
+          "id": "chicken_extra",
+          "name": "추가 옵션",
+          "required": false,
+          "multiSelect": false,
+          "items": [
+            {
+              "id": "none",
+              "name": "선택안함",
+              "price": 0,
+              "available": true
+            },
+            {
+              "id": "creamy_garlic_sauce",
+              "name": "크리미 마늘소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172153232_9.png",
+              "available": true
+            },
+            {
+              "id": "creamy_seasoned_sauce",
+              "name": "크리미 양념소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2023/10/16/20231016172231831_6.png",
+              "available": true
+            },
+            {
+              "id": "mustard_sauce",
+              "name": "머스타드소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170050701_5.png",
+              "available": true
+            },
+            {
+              "id": "teriyaki_sauce",
+              "name": "데리야끼소스",
+              "price": 500,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220170031819_5.png",
+              "available": true
+            },
+            {
+              "id": "onion_seasoning",
+              "name": "어니언시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105532360_7.png",
+              "available": true
+            },
+            {
+              "id": "cheese_seasoning",
+              "name": "치즈시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105546324_0.png",
+              "available": true
+            },
+            {
+              "id": "chili_seasoning",
+              "name": "칠리시즈닝",
+              "price": 200,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2024/04/25/20240425105557961_4.png",
+              "available": true
+            },
+            {
+              "id": "honey_mustard",
+              "name": "허니머스타드",
+              "price": 100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140226145_9.png",
+              "available": true
+            },
+            {
+              "id": "sweet_sour",
+              "name": "스위트앤샤워",
+              "price": 100,
+              "imgUrl": "https://img.lotteeatz.com/upload/product/2025/09/02/20250902140250666_3.png",
+              "available": true
+            }
+          ]
+        }
+      ],
+      "items": [
+        {
+          "id": "boneless_chicken_full_pack_22",
+          "name": "순살치킨 풀팩(22조각)",
+          "price": 17500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165904235_1.png",
+          "available": true
+        },
+        {
+          "id": "boneless_chicken_half_pack_11",
+          "name": "순살치킨 하프팩(11조각)",
+          "price": 10500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165930895_6.png",
+          "available": true
+        },
+        {
+          "id": "fire_wing_4",
+          "name": "화이어윙 4조각",
+          "price": 5500,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621174922240_8.png",
+          "available": true
+        },
+        {
+          "id": "chicken_fillet_4",
+          "name": "치킨휠레 4조각",
+          "price": 5300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2019/12/20/20191220165353371_8.png",
+          "available": true
+        },
+        {
+          "id": "fire_wing_2",
+          "name": "화이어윙 2조각",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2023/06/21/20230621175453874_9.png",
+          "available": true
+        },
+        {
+          "id": "chicken_fillet_2",
+          "name": "치킨휠레 2조각",
+          "price": 3100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2020/11/03/20201103152232421_6.png",
+          "available": true
+        },
+        {
+          "id": "chicken_leg_1",
+          "name": "치킨다리 1조각",
+          "price": 2900,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2024/10/30/20241030191751716_5.png",
+          "available": true
+        }
+      ]
+    },
+    {
       "id": "side",
       "name": "사이드",
-      "displayOrder": 3,
+      "displayOrder": 4,
       "items": [
         {
           "id": "fries_single",
