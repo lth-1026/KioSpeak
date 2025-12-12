@@ -1,11 +1,14 @@
 
-import { StoreProfileModule, MenuItem, MenuCategory, MenuOptionGroup, MenuOptionItem } from '../modules/store_profile';
-import { CartManager, CartSummary, CartOperationResult } from '../modules/core/CartManager';
+import { StoreProfileModule, MenuItem, } from '../modules/store_profile';
+import { CartManager, CartSummary, } from '../modules/core/CartManager';
+
+import { MockPaymentService, PaymentMethod } from '../modules/payment';
 
 export class KioskUI {
   private container: HTMLElement;
   private storeProfile: StoreProfileModule;
   private cartManager: CartManager;
+  private paymentService: MockPaymentService;
 
   private currentCategoryId: string | null = null;
   private currentModalItem: {
@@ -20,6 +23,7 @@ export class KioskUI {
     this.container = el;
     this.storeProfile = store;
     this.cartManager = cart;
+    this.paymentService = new MockPaymentService({ mode: 'alwaysSuccess', delayMs: 1000 });
 
     // Subscribe to Cart Changes
     this.cartManager.on('cartUpdated', (summary: CartSummary) => {
@@ -61,7 +65,7 @@ export class KioskUI {
                             <span>총 결제금액</span>
                             <span style="color: var(--primary-color)" id="total-price">0원</span>
                         </div>
-                        <button class="pay-btn" onclick="alert('결제 기능은 준비중입니다.')">결제하기</button>
+                        <button class="pay-btn" id="btn-open-payment">결제하기</button>
                     </div>
                 </aside>
             </div>
@@ -83,12 +87,43 @@ export class KioskUI {
                     </div>
                 </div>
             </div>
+
+            <!-- Payment Modal -->
+            <div class="modal-overlay" id="payment-modal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h3>결제 수단 선택</h3>
+                        <button class="btn-secondary" id="payment-modal-close">✕</button>
+                    </div>
+                    <div class="modal-body" style="text-align: center;">
+                        <div style="margin-bottom: 2rem; font-size: 1.2rem;">
+                            총 결제 금액: <span id="payment-total-price" style="font-weight: bold; color: var(--primary-color);">0원</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <button class="btn-primary" id="pay-card" style="height: 120px; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #1976d2;">
+                                <span style="font-size: 2rem; margin-bottom: 0.5rem;">💳</span>
+                                카드 결제
+                            </button>
+                            <button class="btn-primary" id="pay-mobile" style="height: 120px; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #7b1fa2;">
+                                <span style="font-size: 2rem; margin-bottom: 0.5rem;">📱</span>
+                                모바일 결제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
 
     // Event Listeners for Modal
     document.getElementById('modal-close')?.addEventListener('click', () => this.closeModal(true));
     document.getElementById('modal-cancel')?.addEventListener('click', () => this.cancelOptionSelection());
     document.getElementById('modal-confirm')?.addEventListener('click', () => this.confirmOptionSelection());
+
+    // Event Listeners for Payment Modal
+    document.getElementById('payment-modal-close')?.addEventListener('click', () => this.closePaymentModal());
+    document.getElementById('pay-card')?.addEventListener('click', () => this.processPayment('CARD'));
+    document.getElementById('pay-mobile')?.addEventListener('click', () => this.processPayment('MOBILE'));
+    document.getElementById('btn-open-payment')?.addEventListener('click', () => this.openPaymentModal());
 
     // Clear Cart Listener
     document.getElementById('clear-cart')?.addEventListener('click', () => this.clearCart());
@@ -429,6 +464,59 @@ export class KioskUI {
 
     if (confirm('장바구니를 모두 비우시겠습니까?')) {
       this.cartManager.clearCart();
+    }
+  }
+
+  // ============ PAYMENT ============
+
+  public openPaymentModal() {
+    const summary = this.cartManager.getCartSummary();
+    if (summary.totalItems === 0) {
+      alert('장바구니가 비어있습니다.');
+      return;
+    }
+
+    const modal = document.getElementById('payment-modal');
+    const priceEl = document.getElementById('payment-total-price');
+
+    if (priceEl) priceEl.innerText = `${summary.totalPrice.toLocaleString()}원`;
+    if (modal) modal.classList.add('open');
+  }
+
+  public closePaymentModal() {
+    const modal = document.getElementById('payment-modal');
+    if (modal) modal.classList.remove('open');
+  }
+
+  public async processPayment(method: PaymentMethod) {
+    // Disable buttons to prevent double click
+    const cardBtn = document.getElementById('pay-card') as HTMLButtonElement;
+    const mobileBtn = document.getElementById('pay-mobile') as HTMLButtonElement;
+
+    if (cardBtn) cardBtn.disabled = true;
+    if (mobileBtn) mobileBtn.disabled = true;
+
+    try {
+      const summary = this.cartManager.getCartSummary();
+      const result = await this.paymentService.requestPayment({
+        orderId: `order_${Date.now()}`,
+        orderName: summary.items.length === 1 ? summary.items[0].menuName : `${summary.items[0].menuName} 외 ${summary.totalItems - 1}건`,
+        amount: summary.totalPrice,
+        method: method
+      });
+
+      if (result.success) {
+        alert(`결제가 완료되었습니다.\n거래번호: ${result.transactionId}`);
+        this.cartManager.clearCart();
+        this.closePaymentModal();
+      } else {
+        alert(`결제 실패: ${result.failureReason}`);
+      }
+    } catch (e) {
+      alert(`오류 발생: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      if (cardBtn) cardBtn.disabled = false;
+      if (mobileBtn) mobileBtn.disabled = false;
     }
   }
 }
