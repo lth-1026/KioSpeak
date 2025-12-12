@@ -73,6 +73,7 @@ export interface MenuCategory {
   displayOrder: number;
   imageUrl?: string;
   items: MenuItem[];
+  commonOptionGroups?: MenuOptionGroup[];
 }
 
 // @deprecated - 하위 호환성을 위해 유지, 새 코드에서는 MenuItem.optionGroups 사용
