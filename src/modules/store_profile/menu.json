@@ -1208,6 +1208,69 @@
           "available": true
         }
       ]
+    },
+    {
+      "id": "ice_shot",
+      "name": "아이스샷",
+      "displayOrder": 5,
+      "items": [
+        {
+          "id": "tornado_mango_jelly",
+          "name": "토네이도 망고젤리",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132239130_5.png",
+          "available": true
+        },
+        {
+          "id": "tornado_choco_cookie",
+          "name": "토네이도 초코쿠키",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132322744_9.png",
+          "available": true
+        },
+        {
+          "id": "tornado_strawberry",
+          "name": "토네이도 스트로베리",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132336418_0.png",
+          "available": true
+        },
+        {
+          "id": "tornado_double_choco",
+          "name": "토네이도 더블초코",
+          "price": 3200,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132309707_2.png",
+          "available": true
+        },
+        {
+          "id": "sundae_hershey_choco",
+          "name": "선데 허쉬초코",
+          "price": 2300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132401853_0.png",
+          "available": true
+        },
+        {
+          "id": "sundae_plain",
+          "name": "선데아이스크림 플레인",
+          "price": 2100,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132349844_6.png",
+          "available": true
+        },
+        {
+          "id": "sundae_strawberry",
+          "name": "선데아이스크림 스트로베리",
+          "price": 2300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132414156_0.png",
+          "available": true
+        },
+        {
+          "id": "soft_cone",
+          "name": "소프트콘",
+          "price": 1300,
+          "imgUrl": "https://img.lotteeatz.com/upload/product/2025/05/22/20250522132436353_0.png",
+          "available": true
+        }
+      ]
     }
   ]
 }
