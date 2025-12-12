@@ -49,16 +49,23 @@ export interface CartSummary {
 
 // ============ CartManager Class ============
 
-export class CartManager {
+import { EventEmitter } from 'eventemitter3';
+
+export class CartManager extends EventEmitter {
 	private cart: CartItem[] = [];
 	private storeProfile: StoreProfileModule | null = null;
 
 	constructor(storeProfile?: StoreProfileModule) {
+		super();
 		this.storeProfile = storeProfile || null;
 	}
 
 	setStoreProfile(storeProfile: StoreProfileModule): void {
 		this.storeProfile = storeProfile;
+	}
+
+	private emitChange() {
+		this.emit('cartUpdated', this.getCartSummary());
 	}
 
 	// ============ CREATE ============
@@ -116,6 +123,7 @@ export class CartManager {
 			};
 		}
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `장바구니에 ${menuName} ${quantity}개가 담겼습니다.`,
@@ -199,6 +207,7 @@ export class CartManager {
 			if (existingIdx >= 0) {
 				existingOption.selectedItems.splice(existingIdx, 1);
 				console.log(`[CartManager] 옵션 제거: ${optionItem.name}`);
+				this.emitChange();
 				return {
 					success: true,
 					message: `${optionItem.name} 선택이 해제되었습니다.`,
@@ -262,6 +271,7 @@ export class CartManager {
 		// 다음 필수 옵션 확인
 		const pendingOptions = this.getPendingRequiredOptions(cartItemId);
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `${optionGroup.name}에서 ${optionItem.name}${priceInfo}을(를) 선택했습니다.`,
@@ -389,6 +399,7 @@ export class CartManager {
 		cartItem.quantity = quantity;
 		console.log(`[CartManager] 수량 변경: ${cartItem.menuName} ${oldQuantity}개 → ${quantity}개`);
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `${cartItem.menuName}의 수량이 ${quantity}개로 변경되었습니다.`,
@@ -454,6 +465,7 @@ export class CartManager {
 		const optionNames = newSelectedItems.map((i) => i.name).join(', ');
 		console.log(`[CartManager] 옵션 업데이트: ${cartItem.menuName} - ${optionGroup.name}: ${optionNames}`);
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `${optionGroup.name}이(가) ${optionNames}(으)로 변경되었습니다.`,
@@ -478,6 +490,7 @@ export class CartManager {
 		const removed = this.cart.splice(idx, 1)[0];
 		console.log(`[CartManager] 장바구니에서 삭제: ${removed.menuName}`);
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `${removed.menuName}이(가) 장바구니에서 삭제되었습니다.`,
@@ -507,6 +520,7 @@ export class CartManager {
 		const removed = cartItem.options.splice(optionIdx, 1)[0];
 		console.log(`[CartManager] 옵션 제거: ${cartItem.menuName} - ${removed.groupName}`);
 
+		this.emitChange();
 		return {
 			success: true,
 			message: `${removed.groupName} 선택이 해제되었습니다.`,
@@ -520,6 +534,7 @@ export class CartManager {
 	clearCart(): void {
 		this.cart = [];
 		console.log('[CartManager] 장바구니 비움');
+		this.emitChange();
 	}
 
 	// ============ PRIVATE HELPERS ============
