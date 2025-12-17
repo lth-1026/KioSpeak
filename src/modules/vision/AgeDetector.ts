@@ -84,7 +84,7 @@ export class AgeDetector {
     try {
       // Detect face with age and gender
       const detection = await faceapi
-        .detectSingleFace(input, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(input as any, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withAgeAndGender();
 
