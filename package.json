@@ -32,6 +32,8 @@
   },
   "dependencies": {
     "@google/genai": "^1.30.0",
+    "@types/crypto-js": "^4.2.2",
+    "crypto-js": "^4.2.0",
     "eventemitter3": "^5.0.1",
     "face-api.js": "^0.22.2",
     "fast-json-patch": "^3.1.1",

@@ -1,0 +1,540 @@
+{
+  "profileId": "default-profile",
+  "version": "1.0.0",
+  "store": {
+    "id": "store-001",
+    "name": "KioSpeak 커피",
+    "address": "서울시 강남구",
+    "phone": "02-1234-5678",
+    "currency": "KRW",
+    "taxRate": 10,
+    "businessHours": {
+      "monday": {
+        "open": "09:00",
+        "close": "22:00"
+      },
+      "tuesday": {
+        "open": "09:00",
+        "close": "22:00"
+      },
+      "wednesday": {
+        "open": "09:00",
+        "close": "22:00"
+      },
+      "thursday": {
+        "open": "09:00",
+        "close": "22:00"
+      },
+      "friday": {
+        "open": "09:00",
+        "close": "23:00"
+      },
+      "saturday": {
+        "open": "10:00",
+        "close": "23:00"
+      },
+      "sunday": {
+        "open": "10:00",
+        "close": "21:00"
+      }
+    }
+  },
+  "menu": {
+    "categories": [
+      {
+        "id": "blend_coffee",
+        "name": "블렌드 커피",
+        "displayOrder": 1,
+        "commonOptionGroups": [
+          {
+            "id": "bean",
+            "name": "원두 선택",
+            "required": true,
+            "multiSelect": false,
+            "items": [
+              {
+                "id": "default",
+                "name": "너티",
+                "price": 0,
+                "available": true
+              },
+              {
+                "id": "special",
+                "name": "스페셜 티",
+                "price": 500,
+                "available": true
+              },
+              {
+                "id": "decaf",
+                "name": "디카페인",
+                "price": 500,
+                "available": true
+              }
+            ]
+          },
+          {
+            "id": "temperature",
+            "name": "HOT or ICE",
+            "required": true,
+            "multiSelect": false,
+            "items": [
+              {
+                "id": "hot",
+                "name": "HOT",
+                "price": 0,
+                "available": true
+              },
+              {
+                "id": "ice",
+                "name": "ICE",
+                "price": 0,
+                "available": true
+              }
+            ]
+          },
+          {
+            "id": "size",
+            "name": "사이즈",
+            "required": true,
+            "multiSelect": false,
+            "items": [
+              {
+                "id": "small",
+                "name": "S",
+                "price": 0,
+                "available": true
+              },
+              {
+                "id": "medium",
+                "name": "M",
+                "price": 500,
+                "available": true
+              },
+              {
+                "id": "large",
+                "name": "L",
+                "price": 1000,
+                "available": true
+              }
+            ]
+          },
+          {
+            "id": "shot-add",
+            "name": "샷추가",
+            "required": false,
+            "multiSelect": true,
+            "items": [
+              {
+                "id": "espresso",
+                "name": "에스프레소",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "extra-espresso-citrus",
+                "name": "추가_에스프레소(시트러스)",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "decaf-shot",
+                "name": "샷추가__(디카페인)",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "chocolate-syrup",
+                "name": "초콜릿시럽",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "oat-milk",
+                "name": "오트우유변경",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "hazelnut-syrup",
+                "name": "헤이즐넛시럽",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "caramel-syrup",
+                "name": "카라멜시럽",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "vanilla-syrup",
+                "name": "바닐라시럽",
+                "price": 600,
+                "available": true
+              },
+              {
+                "id": "whipped-cream",
+                "name": "휘핑크림",
+                "price": 600,
+                "available": true
+              }
+            ]
+          },
+          {
+            "id": "half-shot",
+            "name": "반샷",
+            "required": false,
+            "multiSelect": true,
+            "items": [
+              {
+                "id": "half-shot",
+                "name": "½샷(반샷)",
+                "price": 0,
+                "available": true
+              }
+            ]
+          },
+          {
+            "id": "milk-amount",
+            "name": "우유 양 선택",
+            "required": false,
+            "multiSelect": false,
+            "items": [
+              {
+                "id": "less-milk",
+                "name": "우유 적게",
+                "price": 0,
+                "available": true
+              },
+              {
+                "id": "more-milk",
+                "name": "우유 많이",
+                "price": 0,
+                "available": true
+              }
+            ]
+          }
+        ],
+        "items": [
+          {
+            "id": "milky-vanilla-angel-espresso",
+            "name": "밀키바닐라엔젤(에스프레소)",
+            "price": 6400,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312103605569_1.png",
+            "available": true,
+            "optionGroups": [
+              {
+                "id": "sinamon-option",
+                "name": "시나몬",
+                "required": false,
+                "multiSelect": true,
+                "items": [
+                  {
+                    "id": "sinamon",
+                    "name": "시나몬 올리기",
+                    "price": 0,
+                    "available": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "americano",
+            "name": "아메리카노",
+            "price": 5000,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312105716967_0.png",
+            "available": true,
+            "optionGroups": [
+              {
+                "id": "water-amount",
+                "name": "물 양 선택",
+                "required": false,
+                "multiSelect": false,
+                "items": [
+                  {
+                    "id": "less-water",
+                    "name": "물 적게",
+                    "price": 0,
+                    "available": true
+                  },
+                  {
+                    "id": "more-water",
+                    "name": "물 많이",
+                    "price": 0,
+                    "available": true
+                  }
+                ]
+              }
+            ],
+            "excludeOptions": [
+              "milk-amount",
+              "shot-add.oat-milk",
+              "shot-add.whipped-cream"
+            ]
+          },
+          {
+            "id": "cafe-latte",
+            "name": "카페라떼",
+            "price": 5600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/2025031211155370_1.png",
+            "available": true
+          },
+          {
+            "id": "cafe-mocha",
+            "name": "카페모카",
+            "price": 5900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/2025031211285377_0.png",
+            "available": true
+          },
+          {
+            "id": "vanilla-latte",
+            "name": "바닐라라떼",
+            "price": 5900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312113937131_5.png",
+            "available": true
+          },
+          {
+            "id": "cappuccino",
+            "name": "카푸치노",
+            "price": 5600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312115731950_4.png",
+            "available": true
+          },
+          {
+            "id": "caramel-macchiato",
+            "name": "카라멜마끼아또",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312130536672_1.png",
+            "available": true
+          },
+          {
+            "id": "dolce-latte",
+            "name": "돌체라떼",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312131736389_6.png",
+            "available": true
+          },
+          {
+            "id": "cafe-oat",
+            "name": "카페오트",
+            "price": 6000,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/03/12/20250312132549179_3.png",
+            "available": true
+          },
+          {
+            "id": "espresso",
+            "name": "에스프레소",
+            "price": 5000,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2022/10/13/20221013090245847_8.png",
+            "available": true,
+            "excludeOptions": [
+              "size",
+              "temperature",
+              "shot-add",
+              "milk-amount"
+            ]
+          },
+          {
+            "id": "americhino-crush",
+            "name": "아메리치노크러쉬",
+            "price": 5900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/08/09/20240809182759475_6.png",
+            "available": true
+          },
+          {
+            "id": "americhino-milky-crush",
+            "name": "아메리치노 밀키크러쉬(특화)",
+            "price": 6800,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/07/02/20250702191400396_1.png",
+            "available": true
+          },
+          {
+            "id": "americhino-breeze",
+            "name": "아메리치노 브리즈",
+            "price": 6800,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/08/09/2024080918282121_0.png",
+            "available": true
+          }
+        ]
+      },
+      {
+        "id": "drink",
+        "name": "드링크",
+        "displayOrder": 2,
+        "items": [
+          {
+            "id": "real-apple-juice",
+            "name": "리얼 사과주스",
+            "price": 7000,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/09/20230209190007184_3.png",
+            "available": true
+          },
+          {
+            "id": "real-apple-carrot-juice",
+            "name": "리얼 사과&당근주스",
+            "price": 7000,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/09/20230209185954287_9.png",
+            "available": true
+          },
+          {
+            "id": "real-cherry-tomato-juice",
+            "name": "리얼 방울토마토주스",
+            "price": 6500,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/02/09/20230209190022227_7.png",
+            "available": true
+          },
+          {
+            "id": "real-peach-juice",
+            "name": "리얼 복숭아주스",
+            "price": 6500,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2022/08/18/20220818104433333_9.png",
+            "available": true
+          },
+          {
+            "id": "red-grapefruit-sparkling-ade",
+            "name": "레드자몽스파클링에이드",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/30/20230330085458408_1.png",
+            "available": true
+          },
+          {
+            "id": "strawberry-sparkling-ade",
+            "name": "딸기스파클링에이드",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/30/20230330084456961_2.png",
+            "available": true
+          },
+          {
+            "id": "shine-muscat-sparkling-ade",
+            "name": "샤인머스캣 스파클링 에이드",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2023/03/30/20230330084649738_8.png",
+            "available": true
+          },
+          {
+            "id": "strawberry-latte",
+            "name": "딸기라떼",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2022/04/29/20220429103513806_3.png",
+            "available": true
+          },
+          {
+            "id": "mint-choco-latte",
+            "name": "민트초코라떼",
+            "price": 5900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/10/30/20241030115307881_1.jpg",
+            "available": true
+          },
+          {
+            "id": "chocolate-latte",
+            "name": "초콜릿라떼",
+            "price": 5900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2021/10/13/20211013174831809_3.png",
+            "available": true
+          },
+          {
+            "id": "earl-grey-milk-tea",
+            "name": "얼그레이 밀크티",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2022/12/07/20221207182940170_5.png",
+            "available": true
+          },
+          {
+            "id": "jeju-matcha-latte",
+            "name": "제주말차라떼",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/10/22/20241022092822985_5.png",
+            "available": true
+          },
+          {
+            "id": "purple-sweet-potato-latte",
+            "name": "자색고구마라떼",
+            "price": 6300,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2022/01/17/20220117164141350_8.jpg",
+            "available": true
+          }
+        ]
+      },
+      {
+        "id": "cake",
+        "name": "케이크",
+        "displayOrder": 3,
+        "items": [
+          {
+            "id": "mango-vanilla-cake",
+            "name": "망고바닐라케이크",
+            "price": 7600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/08/28/20250828161049988_3.png",
+            "available": true
+          },
+          {
+            "id": "strawberry-milk-cake",
+            "name": "스트로베리밀크케이크",
+            "price": 7600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/08/28/20250828161131745_2.png",
+            "available": true
+          },
+          {
+            "id": "chocolate-layer-cake",
+            "name": "초콜릿레이어케이크",
+            "price": 7600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/08/28/20250828161148617_7.png",
+            "available": true
+          },
+          {
+            "id": "hazelnut-cream-cake",
+            "name": "헤이즐넛크림케이크",
+            "price": 7600,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2025/08/28/20250828161206779_3.png",
+            "available": true
+          },
+          {
+            "id": "strawberry-fruit-cake",
+            "name": "스트로베리 프룻 케이크",
+            "price": 6700,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/06/18/2024061809483652_2.png",
+            "available": true
+          },
+          {
+            "id": "blueberry-buttermilk-triangle",
+            "name": "블루베리 버터밀크 트라이앵글",
+            "price": 6500,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/06/18/2024061809485556_5.png",
+            "available": true
+          },
+          {
+            "id": "premium-apple-pie",
+            "name": "프리미엄 애플파이",
+            "price": 5800,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/06/18/20240618094911875_4.png",
+            "available": true
+          },
+          {
+            "id": "chocolate-crunch-cake",
+            "name": "초콜릿 크런치 케이크",
+            "price": 6900,
+            "imgUrl": "https://img.lotteeatz.com/upload/product/2024/06/18/20240618094935644_1.png",
+            "available": true
+          }
+        ]
+      }
+    ]
+  },
+  "promotions": [],
+  "settings": {
+    "language": "ko",
+    "voiceAssistant": {
+      "enabled": true,
+      "greeting": "안녕하세요! 주문을 도와드릴게요.",
+      "persona": "친절한 키오스크 직원"
+    },
+    "display": {
+      "theme": "light",
+      "fontSize": "medium",
+      "idleTimeout": 60
+    }
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-12-03T00:00:00.000Z"
+}

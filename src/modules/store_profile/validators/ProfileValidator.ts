@@ -261,13 +261,14 @@ export class ProfileValidator {
     if (!Array.isArray(c.items)) {
       this.addError(`${path}.items`, 'Items must be an array');
     } else {
+      const commonGroups = (c.commonOptionGroups as any[]) || [];
       c.items.forEach((item, i) => {
-        this.validateMenuItem(item, `${path}.items[${i}]`);
+        this.validateMenuItem(item, `${path}.items[${i}]`, commonGroups);
       });
     }
   }
 
-  private validateMenuItem(item: unknown, path: string): void {
+  private validateMenuItem(item: unknown, path: string, commonGroups: any[] = []): void {
     if (!this.isObject(item)) {
       this.addError(path, 'Item must be an object');
       return;
@@ -296,6 +297,46 @@ export class ProfileValidator {
     if (m.tags !== undefined && !Array.isArray(m.tags)) {
       this.addError(`${path}.tags`, 'Must be an array');
     }
+
+    // Validate excludeOptions
+    if (m.excludeOptions !== undefined) {
+      if (!Array.isArray(m.excludeOptions)) {
+        this.addError(`${path}.excludeOptions`, 'Must be an array');
+      } else {
+        // Validate each item is a string and valid reference
+        m.excludeOptions.forEach((opt: unknown, i: number) => {
+          if (typeof opt !== 'string') {
+            this.addError(`${path}.excludeOptions[${i}]`, 'Must be a string');
+          } else {
+            // Check if 'opt' is valid relative to option groups
+            // Merge item-specific optionGroups for completeness (if exists)
+            const itemGroups = (m.optionGroups as any[]) || [];
+            const allGroups = [...commonGroups, ...itemGroups];
+            this.validateExcludeOptionReference(opt, allGroups, `${path}.excludeOptions[${i}]`);
+          }
+        });
+      }
+    }
+  }
+
+  private validateExcludeOptionReference(opt: string, groups: any[], path: string) {
+    // 1. Check if it matches a Group ID
+    if (groups.some(g => g.id === opt)) return;
+
+    // 2. Check if it matches groupId.optionId
+    if (opt.includes('.')) {
+      const [gId, oId] = opt.split('.');
+      const group = groups.find(g => g.id === gId);
+      if (group && group.items && Array.isArray(group.items)) {
+        if (group.items.some((item: any) => item.id === oId)) return;
+      }
+    }
+
+    // 3. Check if it matches a direct Option ID (in any group)
+    const foundInItems = groups.some(g => g.items && Array.isArray(g.items) && g.items.some((item: any) => item.id === opt));
+    if (foundInItems) return;
+
+    this.addError(path, `Reference "${opt}" not found in option groups`);
   }
 
   private validateMenuOptions(

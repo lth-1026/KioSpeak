@@ -201,7 +201,7 @@ async function main() {
   };
 
   // Setup Gemini Events
-  geminiClient.on('log', (msg) => {
+  geminiClient.on('log', (_msg) => {
     // Filter out raw logs if needed
   });
 

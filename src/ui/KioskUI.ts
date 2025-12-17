@@ -40,7 +40,8 @@ export class KioskUI {
     // Layout Structure
     this.container.innerHTML = `
             <div class="kiosk-container">
-                <header class="kiosk-header">
+                <header class="kiosk-header" style="position: relative;">
+                    <div id="admin-trigger" style="position: absolute; top: 0; left: 0; width: 20px; height: 20px; cursor: pointer; z-index: 1000;" title="Admin"></div>
                     <div class="brand-logo">🍔 KioSpeak</div>
                 </header>
                 
@@ -127,6 +128,11 @@ export class KioskUI {
 
     // Clear Cart Listener
     document.getElementById('clear-cart')?.addEventListener('click', () => this.clearCart());
+
+    // Admin Trigger
+    document.getElementById('admin-trigger')?.addEventListener('click', () => {
+      window.location.href = '/admin.html';
+    });
 
     // Initial Render
     this.renderCategories();

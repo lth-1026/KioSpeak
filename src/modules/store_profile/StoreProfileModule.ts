@@ -361,15 +361,28 @@ export class StoreProfileModule {
     };
   }
 
-  /**
-   * 메뉴 이름으로 메뉴 아이템 조회
-   */
   getMenuItemByName(name: string): MenuItem | undefined {
     this.ensureReady();
     for (const category of this.getWorkingProfile().menu.categories) {
       const item = category.items.find((i) => i.name === name);
       if (item) {
         return this.resolveItem(item, category);
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Get raw menu item (without resolving common option groups)
+   * Used for editing to prevent baking common options into item-specific options
+   */
+  getRawMenuItem(itemId: string): MenuItem | undefined {
+    this.ensureReady();
+    for (const category of this.getWorkingProfile().menu.categories) {
+      const item = category.items.find((i) => i.id === itemId);
+      if (item) {
+        // Return a copy to prevent direct mutation of internal state
+        return { ...item };
       }
     }
     return undefined;
@@ -396,6 +409,7 @@ export class StoreProfileModule {
     if (categoryIndex === -1) {
       throw new Error(`Category not found: ${categoryId}`);
     }
+
 
     const newItem: MenuItem = {
       ...item,
@@ -425,6 +439,7 @@ export class StoreProfileModule {
       if (itemIndex === -1) return category;
 
       found = true;
+
       const newItems = [...category.items];
       newItems[itemIndex] = { ...newItems[itemIndex], ...updates };
       return { ...category, items: newItems };
@@ -659,10 +674,11 @@ export class StoreProfileModule {
   getPaymentSettings(): PaymentSettings | undefined {
     return this.getSettings().payment;
   }
-
   getDisplaySettings(): DisplaySettings | undefined {
     return this.getSettings().display;
   }
+
+  // ============ Helper Methods ============
 
   // ============ Export/Import ============
 
@@ -751,28 +767,45 @@ export class StoreProfileModule {
   ): MenuOptionGroup[] {
     const commonGroups = category.commonOptionGroups || [];
     const itemGroups = item.optionGroups || [];
+    const excludeIds = item.excludeOptions || [];
 
-    // If no common groups, return item groups (or empty)
-    if (commonGroups.length === 0) {
-      return itemGroups;
-    }
+    // 1. Create a map for merging by group ID to handle overrides properly
+    // We clone objects to prevent mutation of the original profile data
+    const mergedGroups = new Map<string, MenuOptionGroup>();
 
-    // Start with common groups
-    const result: MenuOptionGroup[] = [...commonGroups];
+    // Add common groups first
+    commonGroups.forEach(g => {
+      mergedGroups.set(g.id, {
+        ...g,
+        items: [...g.items] // shallow clone items array 
+      });
+    });
 
-    // Merge item groups
-    for (const itemGroup of itemGroups) {
-      const existingIndex = result.findIndex((g) => g.id === itemGroup.id);
-      if (existingIndex !== -1) {
-        // Override/Replace
-        result[existingIndex] = itemGroup;
-      } else {
-        // Append
-        result.push(itemGroup);
+    // Merge/Override with item groups
+    itemGroups.forEach(g => {
+      mergedGroups.set(g.id, {
+        ...g,
+        items: [...g.items]
+      });
+    });
+
+    // 2. Apply exclusions
+    if (excludeIds.length > 0) {
+      // First filter out entire groups if the group ID is in excludeIds
+      const filteredGroups = Array.from(mergedGroups.values()).filter(group => !excludeIds.includes(group.id));
+
+      // Then filter items within the remaining groups
+      for (const group of filteredGroups) {
+        group.items = group.items.filter(opt => {
+          // Support both "optionId" and "groupId.optionId" formats
+          const fullId = `${group.id}.${opt.id}`;
+          return !excludeIds.includes(opt.id) && !excludeIds.includes(fullId);
+        });
       }
+      return filteredGroups;
     }
 
-    return result;
+    return Array.from(mergedGroups.values());
   }
 
   /**

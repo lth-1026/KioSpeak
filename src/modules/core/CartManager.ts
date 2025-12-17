@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import { StoreProfileModule, MenuItem, MenuOptionGroup } from '../store_profile';
+import { StoreProfileModule } from '../store_profile';
+import type { MenuOptionGroup } from '../store_profile';
 
 // ============ Types ============
 
