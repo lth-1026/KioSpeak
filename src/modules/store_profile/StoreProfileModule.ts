@@ -767,28 +767,45 @@ export class StoreProfileModule {
   ): MenuOptionGroup[] {
     const commonGroups = category.commonOptionGroups || [];
     const itemGroups = item.optionGroups || [];
+    const excludeIds = item.excludeOptions || [];
 
-    // If no common groups, return item groups (or empty)
-    if (commonGroups.length === 0) {
-      return itemGroups;
-    }
+    // 1. Create a map for merging by group ID to handle overrides properly
+    // We clone objects to prevent mutation of the original profile data
+    const mergedGroups = new Map<string, MenuOptionGroup>();
 
-    // Start with common groups
-    const result: MenuOptionGroup[] = [...commonGroups];
+    // Add common groups first
+    commonGroups.forEach(g => {
+      mergedGroups.set(g.id, {
+        ...g,
+        items: [...g.items] // shallow clone items array 
+      });
+    });
 
-    // Merge item groups
-    for (const itemGroup of itemGroups) {
-      const existingIndex = result.findIndex((g) => g.id === itemGroup.id);
-      if (existingIndex !== -1) {
-        // Override/Replace
-        result[existingIndex] = itemGroup;
-      } else {
-        // Append
-        result.push(itemGroup);
+    // Merge/Override with item groups
+    itemGroups.forEach(g => {
+      mergedGroups.set(g.id, {
+        ...g,
+        items: [...g.items]
+      });
+    });
+
+    // 2. Apply exclusions
+    if (excludeIds.length > 0) {
+      // First filter out entire groups if the group ID is in excludeIds
+      const filteredGroups = Array.from(mergedGroups.values()).filter(group => !excludeIds.includes(group.id));
+
+      // Then filter items within the remaining groups
+      for (const group of filteredGroups) {
+        group.items = group.items.filter(opt => {
+          // Support both "optionId" and "groupId.optionId" formats
+          const fullId = `${group.id}.${opt.id}`;
+          return !excludeIds.includes(opt.id) && !excludeIds.includes(fullId);
+        });
       }
+      return filteredGroups;
     }
 
-    return result;
+    return Array.from(mergedGroups.values());
   }
 
   /**

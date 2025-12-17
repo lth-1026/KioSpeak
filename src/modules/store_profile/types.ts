@@ -66,6 +66,9 @@ export interface MenuItem {
   available: boolean;
   tags?: string[];
   optionGroups?: MenuOptionGroup[]; // 아이템별 옵션 그룹
+
+  // Advanced Option Control
+  excludeOptions?: string[]; // IDs of option items to exclude (from common groups)
 }
 
 export interface MenuCategory {
