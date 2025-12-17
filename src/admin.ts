@@ -4,6 +4,7 @@ import type {
   MenuOptionItem
 } from './modules/store_profile';
 import { v4 as uuidv4 } from 'uuid';
+import { AuthManager } from './modules/auth/AuthManager';
 
 class AdminUI {
   private container: HTMLElement;
@@ -18,6 +19,11 @@ class AdminUI {
   }
 
   async init() {
+    if (!AuthManager.checkAuth()) {
+      this.renderLogin();
+      return;
+    }
+
     this.container.innerHTML = '<div style="padding:2rem;">Loading profile...</div>';
 
     try {
@@ -27,6 +33,38 @@ class AdminUI {
     } catch (e) {
       this.container.innerHTML = `<div style="color:red; padding:2rem;">Error: ${e}</div>`;
     }
+  }
+
+  private renderLogin() {
+    this.container.innerHTML = `
+            <div style="display:flex; justify-content:center; align-items:center; width:100%; height:100vh; background:#f5f5f5;">
+                <div style="background:white; padding:2rem; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:300px;">
+                    <h2 style="margin-top:0; text-align:center; color:#2196f3;">Admin Login</h2>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="login-pw" class="form-control" placeholder="Enter password">
+                    </div>
+                    <button id="btn-login" class="btn btn-primary" style="width:100%;">Login</button>
+                    <div id="login-msg" style="color:red; margin-top:10px; font-size:0.9rem; text-align:center;"></div>
+                </div>
+            </div>
+        `;
+
+    const login = async () => {
+      const pw = (document.getElementById('login-pw') as HTMLInputElement).value;
+      if (await AuthManager.authenticate(pw)) {
+        AuthManager.login();
+        this.init();
+      } else {
+        const msg = document.getElementById('login-msg');
+        if (msg) msg.innerText = 'Invalid password';
+      }
+    };
+
+    document.getElementById('btn-login')?.addEventListener('click', login);
+    document.getElementById('login-pw')?.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
   }
 
   private renderLayout() {
@@ -52,6 +90,10 @@ class AdminUI {
                         <input type="file" id="file-import" accept=".json" style="display:none">
                     </div>
                 </div>
+                <div style="padding:1rem; border-top:1px solid #ddd; display:flex; gap:5px; align-items:center; justify-content:space-between;">
+                    <button class="btn btn-sm" id="btn-change-pw" style="background:#fff; border:1px solid #ddd;">🔑 Pw</button>
+                    <button class="btn btn-sm btn-danger" id="btn-logout">Logout</button>
+                </div>
             </div>
             <div class="main">
                 <div class="main-header">
@@ -69,6 +111,11 @@ class AdminUI {
     document.getElementById('btn-add-item')?.addEventListener('click', () => this.addNewItem());
     document.getElementById('btn-commit')?.addEventListener('click', () => this.handleCommit());
     document.getElementById('btn-export')?.addEventListener('click', () => this.handleExport());
+    document.getElementById('btn-logout')?.addEventListener('click', () => {
+      AuthManager.logout();
+      location.href = '/';
+    });
+    document.getElementById('btn-change-pw')?.addEventListener('click', () => this.handleChangePassword());
 
     // Import Handlers
     const fileInput = document.getElementById('file-import') as HTMLInputElement;
@@ -308,6 +355,30 @@ class AdminUI {
     a.download = `current.json`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  private async handleChangePassword() {
+    const current = prompt('Enter current password:');
+    if (!current) return;
+
+    const newPw = prompt('Enter new password:');
+    if (!newPw) return;
+
+    if (newPw.length < 4) {
+      alert('Password too short (min 4 chars)');
+      return;
+    }
+
+    try {
+      const success = await AuthManager.changePassword(current, newPw);
+      if (success) {
+        alert('Password changed successfully!');
+      } else {
+        alert('Incorrect current password.');
+      }
+    } catch (e) {
+      alert(`Error: ${e}`);
+    }
   }
 
   // ============ CATEGORY EDITOR ============ //
