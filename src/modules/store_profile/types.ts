@@ -35,6 +35,7 @@ export interface MenuOptionItem {
   name: string;
   price: number; // 추가 가격 (0이면 무료)
   available: boolean;
+  imgUrl?: string;
 }
 
 // 옵션 그룹 의존성 (조건부 표시)
@@ -59,7 +60,7 @@ export interface MenuItem {
   name: string;
   description?: string;
   price: number;
-  imageUrl?: string;
+  imgUrl?: string;
   calories?: number;
   allergens?: string[];
   available: boolean;
@@ -71,7 +72,7 @@ export interface MenuCategory {
   id: string;
   name: string;
   displayOrder: number;
-  imageUrl?: string;
+  imgUrl?: string;
   items: MenuItem[];
   commonOptionGroups?: MenuOptionGroup[];
 }
