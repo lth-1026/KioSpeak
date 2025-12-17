@@ -206,6 +206,9 @@ export class GeminiRealtimeClient extends EventEmitter {
           result = this.cartManager.removeCartItem(call.args.cartItemId);
         } else if (call.name === "getCart") {
           result = this.cartManager.getCartSummary();
+        } else if (call.name === "openPaymentModal") {
+          this.emit('payment_start'); // Opens the modal
+          result = { success: true, message: "결제 모달을 열었습니다. 카드/모바일 선택을 유도하세요." };
         } else if (call.name === "getMenu") {
           result = this.storeProfile.getMenuForLLM();
         } else if (call.name === "processPayment") {
@@ -213,6 +216,7 @@ export class GeminiRealtimeClient extends EventEmitter {
           if (cart.length === 0) {
             result = { success: false, message: "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요." };
           } else {
+
             const paymentResult = await this.paymentService.requestPayment({
               orderId: this.generateOrderId(),
               orderName: this.generateOrderName(cart),

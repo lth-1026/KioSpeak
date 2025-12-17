@@ -130,6 +130,19 @@ async function main() {
     }
   });
 
+  geminiClient.on('payment_start', () => {
+    ui.openPaymentModal();
+  });
+
+  geminiClient.on('payment', (result) => {
+    if (result.success) {
+      ui.closePaymentModal();
+    } else {
+      alert(`결제 실패: ${result.reason}`);
+      ui.closePaymentModal();
+    }
+  });
+
   audioRecorder.on('audio_data', (base64) => {
     if (isKioskRunning) geminiClient.sendAudioChunk(base64);
   });

@@ -75,8 +75,17 @@ export const toolDefinitions: Tool[] = [
         }
       },
       {
+        name: "openPaymentModal",
+        description: "Opens the payment method selection modal on the screen. Call this when the customer indicates they want to pay, but hasn't specified a payment method yet. Ask '카드와 모바일 결제 중 어떤 걸로 도와드릴까요?' after calling this.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+          required: []
+        }
+      },
+      {
         name: "processPayment",
-        description: "Processes payment and completes the order. Call only after: 1) Customer confirms they want to pay, 2) Customer chooses payment method (CARD or MOBILE), 3) All cart items have completed options (no pending options). On success, cart is cleared and order is complete.",
+        description: "Processes payment and completes the order. Call this ONLY if the user explicitly mentions the payment method (e.g., 'Pay with card'). If method is unknown, call openPaymentModal instead. On success, cart is cleared and order is complete.",
         parameters: {
           type: Type.OBJECT,
           properties: {
