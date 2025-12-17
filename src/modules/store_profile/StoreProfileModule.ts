@@ -397,6 +397,9 @@ export class StoreProfileModule {
       throw new Error(`Category not found: ${categoryId}`);
     }
 
+    const category = menu.categories[categoryIndex];
+    this.validateUniqueItemName(category, item.name);
+
     const newItem: MenuItem = {
       ...item,
       id: uuidv4(),
@@ -425,6 +428,12 @@ export class StoreProfileModule {
       if (itemIndex === -1) return category;
 
       found = true;
+
+      // If name is being updated, check for duplicates
+      if (updates.name) {
+        this.validateUniqueItemName(category, updates.name, itemId);
+      }
+
       const newItems = [...category.items];
       newItems[itemIndex] = { ...newItems[itemIndex], ...updates };
       return { ...category, items: newItems };
@@ -659,9 +668,16 @@ export class StoreProfileModule {
   getPaymentSettings(): PaymentSettings | undefined {
     return this.getSettings().payment;
   }
-
   getDisplaySettings(): DisplaySettings | undefined {
     return this.getSettings().display;
+  }
+
+  // ============ Helper Methods ============
+  private validateUniqueItemName(category: MenuCategory, name: string, excludeId?: string): void {
+    const hasDuplicate = category.items.some(i => i.name === name && i.id !== excludeId);
+    if (hasDuplicate) {
+      throw new Error(`Menu item with name "${name}" already exists in category "${category.name}"`);
+    }
   }
 
   // ============ Export/Import ============

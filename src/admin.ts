@@ -470,15 +470,19 @@ class AdminUI {
 
   private addNewItem() {
     if (!this.selectedCategoryId) return;
-    this.profileModule.addMenuItem(this.selectedCategoryId, {
-      name: 'New Item',
-      price: 0,
-      description: '',
-      available: true,
-      optionGroups: []
-    });
-    this.renderItems();
-    this.updateStagedStatus();
+    try {
+      this.profileModule.addMenuItem(this.selectedCategoryId, {
+        name: 'New Item',
+        price: 0,
+        description: '',
+        available: true,
+        optionGroups: []
+      });
+      this.renderItems();
+      this.updateStagedStatus();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : String(e));
+    }
   }
 
   private editItem(itemId: string) {
@@ -525,19 +529,23 @@ class AdminUI {
 
     // Handlers
     document.getElementById('btn-save-item')?.addEventListener('click', () => {
-      const name = (document.getElementById('item-name') as HTMLInputElement).value;
-      const price = parseInt((document.getElementById('item-price') as HTMLInputElement).value);
-      const imgUrl = (document.getElementById('item-img') as HTMLInputElement).value;
-      const available = (document.getElementById('item-avail') as HTMLInputElement).checked;
-      const options = this.collectOptionGroupsFromEditor('item-options');
+      try {
+        const name = (document.getElementById('item-name') as HTMLInputElement).value;
+        const price = parseInt((document.getElementById('item-price') as HTMLInputElement).value);
+        const imgUrl = (document.getElementById('item-img') as HTMLInputElement).value;
+        const available = (document.getElementById('item-avail') as HTMLInputElement).checked;
+        const options = this.collectOptionGroupsFromEditor('item-options');
 
-      this.profileModule.updateMenuItem(itemId, {
-        name, price, imgUrl, available, optionGroups: options
-      });
+        this.profileModule.updateMenuItem(itemId, {
+          name, price, imgUrl, available, optionGroups: options
+        });
 
-      this.updateStagedStatus();
-      this.renderItems();
-      this.closeEditor();
+        this.updateStagedStatus();
+        this.renderItems();
+        this.closeEditor();
+      } catch (e) {
+        alert(e instanceof Error ? e.message : String(e));
+      }
     });
 
     document.getElementById('btn-del-item')?.addEventListener('click', () => {
