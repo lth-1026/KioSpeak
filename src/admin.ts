@@ -252,7 +252,7 @@ class AdminUI {
                 <h2>Commit History</h2>
                 <button class="btn" id="btn-close-history">Close History</button>
             </div>
-            <div class="timeline" id="history-timeline">
+            <div class="timeline" id="history-timeline" style="overflow-y:auto; max-height:calc(100vh - 80px);">
                 <div style="text-align:center; padding:2rem;">Loading history...</div>
             </div>
         `;
@@ -262,7 +262,7 @@ class AdminUI {
     });
 
     try {
-      const history = await this.profileModule.getHistory();
+      const history = await this.profileModule.getHistory(1000); // Fetch up to 1000 commits to show "all"
       const container = document.getElementById('history-timeline');
       if (!container) return;
 
