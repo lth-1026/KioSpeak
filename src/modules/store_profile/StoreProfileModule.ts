@@ -361,15 +361,28 @@ export class StoreProfileModule {
     };
   }
 
-  /**
-   * 메뉴 이름으로 메뉴 아이템 조회
-   */
   getMenuItemByName(name: string): MenuItem | undefined {
     this.ensureReady();
     for (const category of this.getWorkingProfile().menu.categories) {
       const item = category.items.find((i) => i.name === name);
       if (item) {
         return this.resolveItem(item, category);
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Get raw menu item (without resolving common option groups)
+   * Used for editing to prevent baking common options into item-specific options
+   */
+  getRawMenuItem(itemId: string): MenuItem | undefined {
+    this.ensureReady();
+    for (const category of this.getWorkingProfile().menu.categories) {
+      const item = category.items.find((i) => i.id === itemId);
+      if (item) {
+        // Return a copy to prevent direct mutation of internal state
+        return { ...item };
       }
     }
     return undefined;

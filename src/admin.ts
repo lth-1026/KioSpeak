@@ -486,13 +486,16 @@ class AdminUI {
   }
 
   private editItem(itemId: string) {
-    const item = this.profileModule.getMenuItem(itemId);
+    const item = this.profileModule.getRawMenuItem(itemId);
     if (!item) return;
+
+    // Get category for common options
+    const category = this.selectedCategoryId
+      ? this.profileModule.getCategory(this.selectedCategoryId)
+      : null;
 
     const panel = document.getElementById('editor-panel');
     if (!panel) return;
-
-    // Highlight logic in list? Maybe later.
 
     panel.innerHTML = `
             <h3>Edit Item</h3>
@@ -514,9 +517,17 @@ class AdminUI {
             </div>
 
             <hr>
-            <h4>Option Groups</h4>
+            <h4>Exclude Options</h4>
+            <div class="form-group" style="border:1px solid #ddd; padding:10px; max-height:200px; overflow-y:auto; background:#fff;">
+                <label style="display:block; margin-bottom:5px; font-size:0.8rem; color:#666;">Select options or groups to EXCLUDE from this item.</label>
+                <div id="exclude-options-list"></div>
+            </div>
+
+            <hr>
+            <h4>Option Groups (Item Specific)</h4>
             <div id="item-options"></div>
             <button class="btn btn-sm btn-primary" id="btn-add-item-opt">Add Group</button>
+            
 
             <div style="margin-top: 2rem; display:flex; gap:10px;">
                 <button class="btn btn-primary" id="btn-save-item">Save</button>
@@ -524,7 +535,17 @@ class AdminUI {
             </div>
         `;
 
+    // 1. Render Option Groups Editor (Item Specific)
     this.renderOptionGroupsEditor(item.optionGroups || [], 'item-options');
+
+    // 2. Render Exclude Options UI
+    // Only show category common options as candidates for exclusion.
+    // Excluding item-specific options is unnecessary (just delete them).
+    const commonGroups = category?.commonOptionGroups || [];
+
+    this.renderExcludeOptionsList(commonGroups, item.excludeOptions || [], 'exclude-options-list');
+
+
     panel.classList.add('open');
 
     // Handlers
@@ -536,8 +557,13 @@ class AdminUI {
         const available = (document.getElementById('item-avail') as HTMLInputElement).checked;
         const options = this.collectOptionGroupsFromEditor('item-options');
 
+        // Collect Exclude Options
+        const excludeOptions = this.collectExcludeOptions('exclude-options-list');
+
         this.profileModule.updateMenuItem(itemId, {
-          name, price, imgUrl, available, optionGroups: options
+          name, price, imgUrl, available,
+          optionGroups: options,
+          excludeOptions
         });
 
         this.updateStagedStatus();
@@ -560,6 +586,101 @@ class AdminUI {
     document.getElementById('btn-add-item-opt')?.addEventListener('click', () => {
       this.addOptionGroupToEditor('item-options');
     });
+  }
+
+  private renderExcludeOptionsList(groups: MenuOptionGroup[], currentExcludes: string[], containerId: string) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (groups.length === 0) {
+      container.innerHTML = '<div style="color:#999; font-style:italic;">No option groups available to exclude.</div>';
+      return;
+    }
+
+    container.innerHTML = groups.map(g => {
+      const isGroupExcluded = currentExcludes.includes(g.id);
+      const itemsHtml = g.items.map(opt => {
+        // Check if excluded directly by ID or by group.id.opt.id
+        // (Validator supports raw ID too, but let's standardize on groupId.optionId for specificity in UI if possible, 
+        // or just check against list)
+        // We'll support checking if `excludeOptions` contains `groupId.optionId` OR `optionId`
+        const fullId = `${g.id}.${opt.id}`;
+        const isItemExcluded = currentExcludes.includes(fullId) || currentExcludes.includes(opt.id);
+
+        return `
+                <div style="margin-left: 20px;">
+                    <label style="font-weight:normal; font-size:0.9rem;">
+                        <input type="checkbox" class="exclude-item-cb" 
+                               data-full-id="${fullId}" 
+                               data-group-id="${g.id}"
+                               ${isItemExcluded || isGroupExcluded ? 'checked' : ''} 
+                               ${isGroupExcluded ? 'disabled' : ''}>
+                        ${opt.name}
+                    </label>
+                </div>
+              `;
+      }).join('');
+
+      return `
+            <div class="exclude-group-block" style="margin-bottom:8px;">
+                <label style="font-weight:bold; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" class="exclude-group-cb" 
+                           data-group-id="${g.id}" 
+                           ${isGroupExcluded ? 'checked' : ''}>
+                    ${g.name} <span style="font-weight:normal; color:#888; font-size:0.8rem;">(Group)</span>
+                </label>
+                <div class="exclude-items-wrapper">
+                    ${itemsHtml}
+                </div>
+            </div>
+          `;
+    }).join('');
+
+    // Add listeners to toggle disable state of children when group is checked
+    container.querySelectorAll('.exclude-group-cb').forEach((cb: any) => {
+      cb.addEventListener('change', (e: Event) => {
+        const checked = (e.target as HTMLInputElement).checked;
+        const wrapper = cb.closest('.exclude-group-block').querySelector('.exclude-items-wrapper');
+        wrapper.querySelectorAll('input').forEach((child: HTMLInputElement) => {
+          child.disabled = checked;
+          if (checked) child.checked = true; // Visual convenience
+          // if unchecked, we leave them? Or clear them?
+          // Usually if I uncheck "Exclude Whole Group", I assume I want to keep the group. 
+          // I might want specific exclusions back. 
+          // Let's NOT auto-uncheck children to prevent data loss if accidental click, 
+          // BUT 'disabled' implies state is overridden.
+          // If I uncheck group, I should probably enable children and maybe keep their previous state?
+          // Simple approach: unchecking group enables children. Their checked state remains as is (or true from above).
+          // Let's actually NOT force checked=true on children if simply disabled, because it muddies "what was selected".
+          // But visually, if group is excluded, items are excluded.
+          // Revised: Just toggle disabled.
+        });
+      });
+    });
+  }
+
+  private collectExcludeOptions(containerId: string): string[] {
+    const container = document.getElementById(containerId);
+    if (!container) return [];
+
+    const excludes: string[] = [];
+
+    container.querySelectorAll('.exclude-group-block').forEach((block: any) => {
+      const groupCb = block.querySelector('.exclude-group-cb') as HTMLInputElement;
+      const groupId = groupCb.getAttribute('data-group-id')!;
+
+      if (groupCb.checked) {
+        excludes.push(groupId);
+      } else {
+        // Check individual items
+        block.querySelectorAll('.exclude-item-cb').forEach((itemCb: HTMLInputElement) => {
+          if (itemCb.checked && !itemCb.disabled) {
+            excludes.push(itemCb.getAttribute('data-full-id')!);
+          }
+        });
+      }
+    });
+    return excludes;
   }
 
   // ============ OPTION EDITOR HELPERS ============ //
