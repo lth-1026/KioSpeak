@@ -166,6 +166,7 @@ async function main() {
       await geminiClient.connect('audio', ageGroup);
       await audioRecorder.start();
       addLog('LLM Connected. Say "Hello"!', 'info');
+      resetIdleTimer(); // Start idle timer
     } catch (e) {
       addLog(`LLM Connection Failed: ${(e as Error).message}`, 'info');
       isKioskRunning = false;
@@ -178,6 +179,37 @@ async function main() {
   function startMonitoringLogic() {
     if (visionStartFn) visionStartFn();
   }
+
+  // ============ Idle Timer ============
+  let idleTimer: number | null = null;
+  const IDLE_TIMEOUT_MS = 15000;
+
+  function resetIdleTimer() {
+    if (!isKioskRunning) return;
+
+    if (idleTimer) window.clearTimeout(idleTimer);
+
+    idleTimer = window.setTimeout(() => {
+      // Idle Action: Ask for help
+      addLog('Idle detected. Prompting LLM for help...', 'info');
+      geminiClient.sendTextMessage("[System Notification] The user has been idle for 15 seconds. Proactively ask if they need help or recommend a popular menu item.");
+    }, IDLE_TIMEOUT_MS);
+  }
+
+  // Hook up idle timer resets
+  window.addEventListener('click', resetIdleTimer);
+  window.addEventListener('touchstart', resetIdleTimer);
+
+  // Also reset on audio activity
+  audioRecorder.on('speech_start', () => {
+    resetIdleTimer();
+  });
+
+  // Reset on LLM activity (so we don't interrupt the bot)
+  geminiClient.on('text_response', () => resetIdleTimer());
+  geminiClient.on('tool_call', () => resetIdleTimer());
+
+
 
   function handleFaceDetection(age: any) {
     if (isKioskRunning) return;
