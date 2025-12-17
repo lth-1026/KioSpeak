@@ -143,6 +143,10 @@ async function main() {
     }
   });
 
+  geminiClient.on('change_category', (categoryId) => {
+    ui.selectCategory(categoryId);
+  });
+
   audioRecorder.on('audio_data', (base64) => {
     if (isKioskRunning) geminiClient.sendAudioChunk(base64);
   });

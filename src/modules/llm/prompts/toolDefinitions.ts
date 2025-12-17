@@ -84,6 +84,17 @@ export const toolDefinitions: Tool[] = [
         }
       },
       {
+        name: "changeCategory",
+        description: "Switches the menu category displayed on the screen. Use this when the customer wants to see a specific category (e.g., 'Show me drinks', 'Recommend something'). Use categoryId from getMenu response.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            categoryId: { type: Type.STRING, description: "Category ID to switch to. Must match one of the IDs from getMenu." }
+          },
+          required: ["categoryId"]
+        }
+      },
+      {
         name: "processPayment",
         description: "Processes payment and completes the order. Call this ONLY if the user explicitly mentions the payment method (e.g., 'Pay with card'). If method is unknown, call openPaymentModal instead. On success, cart is cleared and order is complete.",
         parameters: {

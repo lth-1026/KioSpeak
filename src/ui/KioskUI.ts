@@ -179,7 +179,7 @@ export class KioskUI {
     }
   }
 
-  private selectCategory(id: string) {
+  public selectCategory(id: string) {
     this.currentCategoryId = id;
 
     // Update Active Tab

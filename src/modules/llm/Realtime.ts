@@ -209,6 +209,9 @@ export class GeminiRealtimeClient extends EventEmitter {
         } else if (call.name === "openPaymentModal") {
           this.emit('payment_start'); // Opens the modal
           result = { success: true, message: "결제 모달을 열었습니다. 카드/모바일 선택을 유도하세요." };
+        } else if (call.name === "changeCategory") {
+          this.emit('change_category', call.args.categoryId);
+          result = { success: true, message: `카테고리를 '${call.args.categoryId}'(으)로 변경했습니다.` };
         } else if (call.name === "getMenu") {
           result = this.storeProfile.getMenuForLLM();
         } else if (call.name === "processPayment") {
