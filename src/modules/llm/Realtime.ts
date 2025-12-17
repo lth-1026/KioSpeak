@@ -21,6 +21,7 @@ export class GeminiRealtimeClient extends EventEmitter {
   private nextStartTime = 0;
   private sources = new Set<AudioBufferSourceNode>();
   private readonly API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+  private isLLMUpdating = false;
 
   constructor(cartManager: CartManager, storeProfile: StoreProfileModule) {
     super();
@@ -44,6 +45,16 @@ export class GeminiRealtimeClient extends EventEmitter {
     this.outputNode = this.outputAudioContext.createGain();
     this.outputNode.connect(this.outputAudioContext.destination);
     this.nextStartTime = this.outputAudioContext.currentTime;
+
+    // Listen to cart updates
+    this.cartManager.on('cartUpdated', (summary) => {
+      // Only notify if update is NOT from LLM and session is active
+      if (!this.isLLMUpdating && this.session) {
+        console.log("[Gemini] User manually updated cart. Notifying LLM.");
+        this.stopAudio();
+        this.sendTextMessage(`[System Notification] The user updated the cart via touch screen. Current Cart: ${JSON.stringify(summary)}`);
+      }
+    });
   }
 
   async connect(mode: ConnectionMode = 'audio', ageGroup?: AgeGroup) {
@@ -147,6 +158,8 @@ export class GeminiRealtimeClient extends EventEmitter {
     const functionCalls = toolCall.functionCalls;
     const functionResponses = [];
 
+    this.isLLMUpdating = true;
+
     try {
       for (const call of functionCalls) {
         const logMsg = `🛠️ Function Call: ${call.name}(${JSON.stringify(call.args)})`;
@@ -237,6 +250,8 @@ export class GeminiRealtimeClient extends EventEmitter {
     } catch (e) {
       console.error("Error processing tool calls:", e);
       this.emit('log', `❌ Tool Error: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      this.isLLMUpdating = false;
     }
 
     // Send tool response
