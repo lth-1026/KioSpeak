@@ -1,21 +1,21 @@
-import { StoreProfileModule } from './modules/store_profile';
 import type {
   MenuOptionGroup,
   MenuOptionItem
 } from './modules/store_profile';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthManager } from './modules/auth/AuthManager';
+import { StoreProfileManager } from './modules/core/StoreProfileManager';
 
 class AdminUI {
   private container: HTMLElement;
-  private profileModule: StoreProfileModule;
+  private profileManager: StoreProfileManager;
   private selectedCategoryId: string | null = null;
 
   constructor(containerId: string) {
     const el = document.getElementById(containerId);
     if (!el) throw new Error('Container not found');
     this.container = el;
-    this.profileModule = new StoreProfileModule();
+    this.profileManager = StoreProfileManager.getInstance();
   }
 
   async init() {
@@ -27,7 +27,7 @@ class AdminUI {
     this.container.innerHTML = '<div style="padding:2rem;">Loading profile...</div>';
 
     try {
-      await this.profileModule.initialize();
+      await this.profileManager.initialize();
       this.renderLayout();
       this.updateStagedStatus();
     } catch (e) {
@@ -135,7 +135,7 @@ class AdminUI {
     reader.onload = async (e) => {
       try {
         const json = e.target?.result as string;
-        this.profileModule.importProfile(json);
+        this.profileManager.importProfile(json);
         alert('Profile imported successfully! Changes are staged.');
         this.updateStagedStatus();
         this.renderCategories();
@@ -160,7 +160,7 @@ class AdminUI {
     const list = document.getElementById('category-list');
     if (!list) return;
 
-    const categories = this.profileModule.getCategories().sort((a, b) => a.displayOrder - b.displayOrder);
+    const categories = this.profileManager.getCategories().sort((a, b) => a.displayOrder - b.displayOrder);
 
     list.innerHTML = categories.map(cat => `
             <div class="category-item ${this.selectedCategoryId === cat.id ? 'active' : ''}" data-id="${cat.id}">
@@ -208,7 +208,7 @@ class AdminUI {
       return;
     }
 
-    const category = this.profileModule.getCategory(this.selectedCategoryId);
+    const category = this.profileManager.getCategory(this.selectedCategoryId);
     if (!category) return;
 
     title.innerText = category.name;
@@ -262,7 +262,7 @@ class AdminUI {
     });
 
     try {
-      const history = await this.profileModule.getHistory(1000); // Fetch up to 1000 commits to show "all"
+      const history = await this.profileManager.getHistory(1000); // Fetch up to 1000 commits to show "all"
       const container = document.getElementById('history-timeline');
       if (!container) return;
 
@@ -301,7 +301,7 @@ class AdminUI {
     if (!confirm('Are you sure you want to rollback to this commit? Current unsaved changes will be lost.')) return;
 
     try {
-      await this.profileModule.rollback(commitId, 'Admin Rollback');
+      await this.profileManager.rollback(commitId, 'Admin Rollback');
       alert('Rollback successful!');
       this.updateStagedStatus();
       this.renderCategories(); // refresh data
@@ -320,7 +320,7 @@ class AdminUI {
   // ============ ACTIONS ============ //
 
   private updateStagedStatus() {
-    const changes = this.profileModule.getStagedChanges();
+    const changes = this.profileManager.getStagedChanges();
     const badge = document.getElementById('staged-badge');
     if (badge) {
       badge.style.display = changes ? 'inline-block' : 'none';
@@ -328,7 +328,7 @@ class AdminUI {
   }
 
   private async handleCommit() {
-    const changes = this.profileModule.getStagedChanges();
+    const changes = this.profileManager.getStagedChanges();
     if (!changes) {
       alert('No changes to commit');
       return;
@@ -338,7 +338,7 @@ class AdminUI {
     if (!msg) return;
 
     try {
-      await this.profileModule.commitChanges(msg, 'Admin');
+      await this.profileManager.commitChanges(msg, 'Admin');
       this.updateStagedStatus();
       alert('Changes committed successfully!');
     } catch (e) {
@@ -347,7 +347,7 @@ class AdminUI {
   }
 
   private handleExport() {
-    const json = this.profileModule.exportProfile();
+    const json = this.profileManager.exportProfile();
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -387,9 +387,9 @@ class AdminUI {
     const name = prompt('New Category Name:');
     if (!name) return;
 
-    this.profileModule.addCategory({
+    this.profileManager.addCategory({
       name,
-      displayOrder: this.profileModule.getCategories().length + 1,
+      displayOrder: this.profileManager.getCategories().length + 1,
       commonOptionGroups: []
     });
     this.renderCategories();
@@ -397,7 +397,7 @@ class AdminUI {
   }
 
   private editCategory(id: string) {
-    const category = this.profileModule.getCategory(id);
+    const category = this.profileManager.getCategory(id);
     if (!category) return;
 
     const panel = document.getElementById('editor-panel');
@@ -436,7 +436,7 @@ class AdminUI {
       const order = parseInt((document.getElementById('cat-order') as HTMLInputElement).value);
       const options = this.collectOptionGroupsFromEditor('cat-common-options');
 
-      this.profileModule.updateCategory(id, {
+      this.profileManager.updateCategory(id, {
         name,
         displayOrder: order,
         commonOptionGroups: options
@@ -451,7 +451,7 @@ class AdminUI {
     // Delete
     document.getElementById('btn-del-cat')?.addEventListener('click', () => {
       if (confirm(`Delete category "${category.name}"?`)) {
-        this.profileModule.removeCategory(id);
+        this.profileManager.removeCategory(id);
         this.updateStagedStatus();
         this.selectedCategoryId = null;
         this.renderCategories();
@@ -471,7 +471,7 @@ class AdminUI {
   private addNewItem() {
     if (!this.selectedCategoryId) return;
     try {
-      this.profileModule.addMenuItem(this.selectedCategoryId, {
+      this.profileManager.addMenuItem(this.selectedCategoryId, {
         name: 'New Item',
         price: 0,
         description: '',
@@ -486,12 +486,12 @@ class AdminUI {
   }
 
   private editItem(itemId: string) {
-    const item = this.profileModule.getRawMenuItem(itemId);
+    const item = this.profileManager.getRawMenuItem(itemId);
     if (!item) return;
 
     // Get category for common options
     const category = this.selectedCategoryId
-      ? this.profileModule.getCategory(this.selectedCategoryId)
+      ? this.profileManager.getCategory(this.selectedCategoryId)
       : null;
 
     const panel = document.getElementById('editor-panel');
@@ -560,7 +560,7 @@ class AdminUI {
         // Collect Exclude Options
         const excludeOptions = this.collectExcludeOptions('exclude-options-list');
 
-        this.profileModule.updateMenuItem(itemId, {
+        this.profileManager.updateMenuItem(itemId, {
           name, price, imgUrl, available,
           optionGroups: options,
           excludeOptions
@@ -576,7 +576,7 @@ class AdminUI {
 
     document.getElementById('btn-del-item')?.addEventListener('click', () => {
       if (confirm(`Delete item "${item.name}"?`)) {
-        this.profileModule.removeMenuItem(itemId);
+        this.profileManager.removeMenuItem(itemId);
         this.updateStagedStatus();
         this.renderItems();
         this.closeEditor();
