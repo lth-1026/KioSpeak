@@ -412,6 +412,7 @@ export class StoreProfileModule {
 
     const category = menu.categories[categoryIndex];
     this.validateUniqueItemName(category, item.name);
+    this.validateUniqueOptionNames(item.optionGroups);
 
     const newItem: MenuItem = {
       ...item,
@@ -445,6 +446,10 @@ export class StoreProfileModule {
       // If name is being updated, check for duplicates
       if (updates.name) {
         this.validateUniqueItemName(category, updates.name, itemId);
+      }
+      // If optionGroups are being updated, check for duplicates
+      if (updates.optionGroups) {
+        this.validateUniqueOptionNames(updates.optionGroups);
       }
 
       const newItems = [...category.items];
@@ -690,6 +695,28 @@ export class StoreProfileModule {
     const hasDuplicate = category.items.some(i => i.name === name && i.id !== excludeId);
     if (hasDuplicate) {
       throw new Error(`Menu item with name "${name}" already exists in category "${category.name}"`);
+    }
+  }
+
+  private validateUniqueOptionNames(optionGroups: MenuOptionGroup[] | undefined): void {
+    if (!optionGroups) return;
+
+    // 1. Validate Option Group names are unique
+    const groupNames = new Set<string>();
+    for (const group of optionGroups) {
+      if (groupNames.has(group.name)) {
+        throw new Error(`Duplicate option group name: "${group.name}"`);
+      }
+      groupNames.add(group.name);
+
+      // 2. Validate Option Item names are unique within the group
+      const itemNames = new Set<string>();
+      for (const item of group.items) {
+        if (itemNames.has(item.name)) {
+          throw new Error(`Duplicate option item name "${item.name}" in group "${group.name}"`);
+        }
+        itemNames.add(item.name);
+      }
     }
   }
 
