@@ -10,20 +10,25 @@ export const toolDefinitions: Tool[] = [
           type: Type.OBJECT,
           properties: {
             menuName: { type: Type.STRING, description: "Exact menu name from getMenu response (e.g., '불고기 버거', '콜라'). Must match name field exactly." },
-            quantity: { type: Type.NUMBER, description: "Quantity to add (default: 1)" }
+            quantity: { type: Type.NUMBER, description: "Quantity to add (default: 1)" },
+            initialOptionNames: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "Optional list of option names to select immediately (e.g., ['세트', '콜라', '라지']). Use this if the user mentioned options in the add command."
+            }
           },
           required: ["menuName"]
         }
       },
       {
         name: "selectOption",
-        description: "Selects an option for a cart item. Use values from pendingOptions returned by addToCart or previous selectOption call. After calling, check the new pendingOptions in response - if not empty, ask about the next option group. If empty, the item configuration is complete.",
+        description: "Selects OR changes an option for a cart item. Use this to fulfilling pending options OR to modify existing selections (e.g. changing from 'Single' to 'Set', or changing drink). If validation fails (e.g., dependency not met), asking the user for clarification. Check response for updated pending options.",
         parameters: {
           type: Type.OBJECT,
           properties: {
-            cartItemId: { type: Type.STRING, description: "Cart item ID from addToCart response or getCart response. Format: 'cart_xxx'. Each cart item has a unique ID." },
-            groupId: { type: Type.STRING, description: "Option group ID from pendingOptions[].groupId (e.g., 'set_choice', 'drink', 'size'). Use exact value from response." },
-            optionId: { type: Type.STRING, description: "Option ID from pendingOptions[].items[].id (e.g., 'set', 'single', 'cola'). Use exact value - do not translate or guess." }
+            cartItemId: { type: Type.STRING, description: "Cart item ID from addToCart response or getCart response. Format: 'cart_xxx'." },
+            groupId: { type: Type.STRING, description: "Option group ID. For pending options, use value from pendingOptions[].groupId. For modifying existing items, find the group ID from getCart or getMenu (e.g., 'set_choice', 'drink')." },
+            optionId: { type: Type.STRING, description: "Option ID to select. Use exact value from pendingOptions or getMenu (e.g., 'set', 'single', 'cola')." }
           },
           required: ["cartItemId", "groupId", "optionId"]
         }
@@ -70,8 +75,28 @@ export const toolDefinitions: Tool[] = [
         }
       },
       {
+        name: "openPaymentModal",
+        description: "Opens the payment method selection modal on the screen. Call this when the customer indicates they want to pay, but hasn't specified a payment method yet. Ask '카드와 모바일 결제 중 어떤 걸로 도와드릴까요?' after calling this.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: "changeCategory",
+        description: "Switches the menu category displayed on the screen. Use this when the customer wants to see a specific category (e.g., 'Show me drinks', 'Recommend something'). Use categoryId from getMenu response.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: {
+            categoryId: { type: Type.STRING, description: "Category ID to switch to. Must match one of the IDs from getMenu." }
+          },
+          required: ["categoryId"]
+        }
+      },
+      {
         name: "processPayment",
-        description: "Processes payment and completes the order. Call only after: 1) Customer confirms they want to pay, 2) Customer chooses payment method (CARD or MOBILE), 3) All cart items have completed options (no pending options). On success, cart is cleared and order is complete.",
+        description: "Processes payment and completes the order. Call this ONLY if the user explicitly mentions the payment method (e.g., 'Pay with card'). If method is unknown, call openPaymentModal instead. On success, cart is cleared and order is complete.",
         parameters: {
           type: Type.OBJECT,
           properties: {

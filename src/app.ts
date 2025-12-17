@@ -96,10 +96,59 @@ async function main() {
 
   let isKioskRunning = false;
   let autoStartTimer: number | null = null;
+  let faceLostTimer: number | null = null;
+  const FACE_LOST_TIMEOUT_MS = 30000;
+
 
   // Setup Gemini & Audio Events
   geminiClient.on('user_message', (text) => addLog(text, 'user'));
   geminiClient.on('text_response', (text) => addLog(text, 'ai'));
+  geminiClient.on('log', (msg) => addLog(msg, 'info'));
+
+  geminiClient.on('tool_call', (data) => {
+    addLog(`Function: ${data.name}`, 'info');
+
+    // 음성으로 장바구니 담기 시: 필수 옵션이 남았을 때만 모달 띄우기
+    if (data.name === 'addToCart' && data.result?.success && data.result?.cartItemId) {
+      const cartItemId = data.result.cartItemId;
+      const pending = cartManager.getPendingRequiredOptions(cartItemId);
+
+      if (pending.length > 0) {
+        ui.reconfigureItem(cartItemId);
+      }
+    }
+
+    // 음성으로 옵션 선택 시:
+    if (data.name === 'selectOption' && data.result?.success && data.result?.cartItemId) {
+      const cartItemId = data.result.cartItemId;
+      const pending = cartManager.getPendingRequiredOptions(cartItemId);
+
+      if (pending.length > 0) {
+        // 필수 옵션이 남았거나 새로 생겼으면(예: 세트로 변경) 모달 띄우기
+        ui.reconfigureItem(cartItemId);
+      } else {
+        // 모든 필수 옵션이 충족되면 모달 닫기
+        ui.closeModal(false);
+      }
+    }
+  });
+
+  geminiClient.on('payment_start', () => {
+    ui.openPaymentModal();
+  });
+
+  geminiClient.on('payment', (result) => {
+    if (result.success) {
+      ui.closePaymentModal();
+    } else {
+      alert(`결제 실패: ${result.reason}`);
+      ui.closePaymentModal();
+    }
+  });
+
+  geminiClient.on('change_category', (categoryId) => {
+    ui.selectCategory(categoryId);
+  });
 
   audioRecorder.on('audio_data', (base64) => {
     if (isKioskRunning) geminiClient.sendAudioChunk(base64);
@@ -114,12 +163,14 @@ async function main() {
     isKioskRunning = true;
 
     addLog(`Face Detected (${ageGroup}). Starting LLM...`, 'info');
-    visionModule.stopMonitoring(); // Pause vision to save resource or avoid noise
+    // visionModule.stopMonitoring(); // KEEP VISION RUNNING to detect face loss
+
 
     try {
       await geminiClient.connect('audio', ageGroup);
       await audioRecorder.start();
       addLog('LLM Connected. Say "Hello"!', 'info');
+      resetIdleTimer(); // Start idle timer
     } catch (e) {
       addLog(`LLM Connection Failed: ${(e as Error).message}`, 'info');
       isKioskRunning = false;
@@ -133,27 +184,94 @@ async function main() {
     if (visionStartFn) visionStartFn();
   }
 
+  function resetKiosk() {
+    addLog('Session Reset: 30s Face Lost Timeout', 'info');
+
+    // Stop LLM
+    geminiClient.disconnect();
+
+    // Clear Data
+    cartManager.clearCart();
+
+    // Reset UI
+    ui.closeModal(false);
+    ui.closePaymentModal();
+    // Reset to default category? Maybe not strictly required but good for reset.
+    // ui.selectCategory(originalCategoryId...?); 
+
+    // Reset State
+    isKioskRunning = false;
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = null;
+
+    // Resume Vision
+    // Vision is already running (we didn't stop it)
+    // startMonitoringLogic(); 
+    addLog('Kiosk Reset. Waiting for new customer...', 'info');
+  }
+
+
+  // ============ Idle Timer ============
+  let idleTimer: number | null = null;
+  const IDLE_TIMEOUT_MS = 15000;
+
+  function resetIdleTimer() {
+    if (!isKioskRunning) return;
+
+    if (idleTimer) window.clearTimeout(idleTimer);
+
+    idleTimer = window.setTimeout(() => {
+      // Idle Action: Ask for help
+      addLog('Idle detected. Prompting LLM for help...', 'info');
+      geminiClient.sendTextMessage("[System Notification] The user has been idle for 15 seconds. Proactively ask if they need help or recommend a popular menu item.");
+    }, IDLE_TIMEOUT_MS);
+  }
+
+  // Hook up idle timer resets
+  window.addEventListener('click', resetIdleTimer);
+  window.addEventListener('touchstart', resetIdleTimer);
+
+  // Also reset on audio activity
+  audioRecorder.on('speech_start', () => {
+    resetIdleTimer();
+  });
+
+  // Reset on LLM activity (so we don't interrupt the bot)
+  geminiClient.on('text_response', () => resetIdleTimer());
+  geminiClient.on('tool_call', () => resetIdleTimer());
+
+
+
   function handleFaceDetection(age: any) {
+    // If face detected again within 30s timeout, cancel the reset
+    if (faceLostTimer) {
+      clearTimeout(faceLostTimer);
+      faceLostTimer = null;
+      addLog('Face detected again. Reset cancelled.', 'info');
+    }
+
     if (isKioskRunning) return;
 
     if (!autoStartTimer) {
-      addLog(`Face detected! Auto-starting in 1.5s...`, 'info');
-      autoStartTimer = window.setTimeout(() => {
-        startKiosk(age.ageGroup);
-        autoStartTimer = null;
-      }, 1500);
+      addLog(`Face detected! Starting immediately...`, 'info');
+      startKiosk(age.ageGroup);
     }
   }
+
 
   function handleFaceLost() {
-    if (isKioskRunning) return; // If running, we don't care if face lost (session active)
+    // If not running, nothing to reset (unless we want to cancel a pending start, but start is immediate now)
+    if (!isKioskRunning) return;
 
-    if (autoStartTimer) {
-      clearTimeout(autoStartTimer);
-      autoStartTimer = null;
-      addLog('Face lost. Auto-start cancelled.', 'info');
+    if (!faceLostTimer) {
+      addLog(`Face lost. Will reset in 30s...`, 'info');
+      faceLostTimer = window.setTimeout(() => {
+        resetKiosk();
+        faceLostTimer = null;
+      }, FACE_LOST_TIMEOUT_MS);
     }
   }
+
 
   // ============ UI Helpers ============
 
