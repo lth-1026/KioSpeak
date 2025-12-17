@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KioSpeak Admin - Menu Manager</title>
+  <style>
+    :root {
+      --primary: #2196f3;
+      --danger: #f44336;
+      --success: #4caf50;
+      --bg: #f5f5f5;
+      --card-bg: #fff;
+      --border: #ddd;
+    }
+
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: var(--bg);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Layout */
+    .admin-container {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-panel {
+      width: 350px;
+      background: #fff;
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 1rem;
+      display: none;
+    }
+
+    .editor-panel.open {
+      display: block;
+    }
+
+    /* Sidebar Elements */
+    .sidebar-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .category-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .category-item {
+      padding: 10px 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .category-item:hover {
+      background: #f0f0f0;
+    }
+
+    .category-item.active {
+      background: #e3f2fd;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Main Area */
+    .main-header {
+      padding: 1rem;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      align-content: start;
+    }
+
+    .menu-item-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      position: relative;
+    }
+
+    .menu-item-card:hover {
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary);
+    }
+
+    .menu-item-card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1rem;
+    }
+
+    .price {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 2px 6px;
+      font-size: 12px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Commit Bar */
+    .commit-bar {
+      padding: 1rem;
+      background: #333;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .staged-badge {
+      background: var(--success);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      margin-left: 10px;
+      display: none;
+    }
+
+    /* Option Group Editor in Panel */
+    .option-group-editor {
+      border: 1px solid #eee;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      background: #fafafa;
+    }
+
+    .option-item-row {
+      display: flex;
+      gap: 5px;
+      margin-top: 5px;
+      align-items: center;
+    }
+
+    /* Timeline / History */
+    .timeline {
+      padding: 2rem;
+      position: relative;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 30px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #ddd;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 50px;
+      margin-bottom: 2rem;
+    }
+
+    .timeline-marker {
+      position: absolute;
+      left: 24px;
+      top: 0;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 2px var(--border);
+    }
+
+    .timeline-content {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .commit-msg {
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .commit-meta {
+      color: #666;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn-rollback {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .btn-rollback:hover {
+      background: #f57c00;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app" class="admin-container"></div>
+  <script type="module" src="/src/admin.ts"></script>
+</body>
+
+</html>
