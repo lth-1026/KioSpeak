@@ -147,68 +147,96 @@ export class GeminiRealtimeClient extends EventEmitter {
     const functionCalls = toolCall.functionCalls;
     const functionResponses = [];
 
-    for (const call of functionCalls) {
-      const logMsg = `🛠️ Function Call: ${call.name}(${JSON.stringify(call.args)})`;
-      console.log(`[Gemini Request] ${logMsg}`);
-      this.emit('log', logMsg);
+    try {
+      for (const call of functionCalls) {
+        const logMsg = `🛠️ Function Call: ${call.name}(${JSON.stringify(call.args)})`;
+        console.log(`[Gemini Request] ${logMsg}`);
+        this.emit('log', logMsg);
 
-      let result: CartOperationResult | string | object;
+        let result: CartOperationResult | string | object;
 
-      // 실제 Core 함수 실행
-      if (call.name === "addToCart") {
-        result = this.cartManager.addToCart(call.args.menuName, call.args.quantity || 1);
-      } else if (call.name === "selectOption") {
-        result = this.cartManager.selectOption(
-          call.args.cartItemId,
-          call.args.groupId,
-          call.args.optionId
-        );
-      } else if (call.name === "updateQuantity") {
-        result = this.cartManager.updateQuantity(call.args.cartItemId, call.args.quantity);
-      } else if (call.name === "removeFromCart") {
-        result = this.cartManager.removeCartItem(call.args.cartItemId);
-      } else if (call.name === "getCart") {
-        result = this.cartManager.getCartSummary();
-      } else if (call.name === "getMenu") {
-        result = this.storeProfile.getMenuForLLM();
-      } else if (call.name === "processPayment") {
-        const cart = this.cartManager.getCart();
-        if (cart.length === 0) {
-          result = { success: false, message: "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요." };
-        } else {
-          const paymentResult = await this.paymentService.requestPayment({
-            orderId: this.generateOrderId(),
-            orderName: this.generateOrderName(cart),
-            amount: this.cartManager.getTotal(),
-            method: call.args.method as PaymentMethod,
-          });
+        // 실제 Core 함수 실행
+        if (call.name === "addToCart") {
+          result = this.cartManager.addToCart(call.args.menuName, call.args.quantity || 1);
+          const cartResult = result as CartOperationResult;
 
-          if (paymentResult.success) {
-            this.cartManager.clearCart();
-            result = { success: true, message: `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}` };
-            this.emit('payment', { success: true, transactionId: paymentResult.transactionId });
-          } else {
-            result = { success: false, message: `결제에 실패했습니다. 사유: ${paymentResult.failureReason}` };
-            this.emit('payment', { success: false, reason: paymentResult.failureReason });
+          // Handle initial options if provided
+          if (cartResult.success && cartResult.cartItemId && call.args.initialOptionNames && Array.isArray(call.args.initialOptionNames)) {
+            const cartItem = this.cartManager.getCartItem(cartResult.cartItemId);
+            if (cartItem && cartItem.optionGroups) {
+              for (const optName of call.args.initialOptionNames) {
+                // Find matching option in any group
+                for (const group of cartItem.optionGroups) {
+                  const option = group.items.find(item => item.name === optName);
+                  if (option) {
+                    // Select it
+                    console.log(`[Realtime] selecting initial option: ${optName}`);
+                    this.cartManager.selectOption(cartResult.cartItemId!, group.id, option.id);
+                    break; // Found and selected, move to next optName
+                  }
+                }
+              }
+              // Update pending options after processing initial selections
+              const updatedPending = this.cartManager.getPendingRequiredOptions(cartResult.cartItemId);
+              cartResult.pendingOptions = updatedPending.length > 0 ? updatedPending : undefined;
+            }
           }
+        } else if (call.name === "selectOption") {
+          result = this.cartManager.selectOption(
+            call.args.cartItemId,
+            call.args.groupId,
+            call.args.optionId
+          );
+        } else if (call.name === "updateQuantity") {
+          result = this.cartManager.updateQuantity(call.args.cartItemId, call.args.quantity);
+        } else if (call.name === "removeFromCart") {
+          result = this.cartManager.removeCartItem(call.args.cartItemId);
+        } else if (call.name === "getCart") {
+          result = this.cartManager.getCartSummary();
+        } else if (call.name === "getMenu") {
+          result = this.storeProfile.getMenuForLLM();
+        } else if (call.name === "processPayment") {
+          const cart = this.cartManager.getCart();
+          if (cart.length === 0) {
+            result = { success: false, message: "장바구니가 비어있습니다. 먼저 메뉴를 추가해주세요." };
+          } else {
+            const paymentResult = await this.paymentService.requestPayment({
+              orderId: this.generateOrderId(),
+              orderName: this.generateOrderName(cart),
+              amount: this.cartManager.getTotal(),
+              method: call.args.method as PaymentMethod,
+            });
+
+            if (paymentResult.success) {
+              this.cartManager.clearCart();
+              result = { success: true, message: `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}` };
+              this.emit('payment', { success: true, transactionId: paymentResult.transactionId });
+            } else {
+              result = { success: false, message: `결제에 실패했습니다. 사유: ${paymentResult.failureReason}` };
+              this.emit('payment', { success: false, reason: paymentResult.failureReason });
+            }
+          }
+        } else {
+          result = { success: false, message: `알 수 없는 함수: ${call.name}` };
         }
-      } else {
-        result = { success: false, message: `알 수 없는 함수: ${call.name}` };
+
+        // Tool Call 이벤트 emit (UI에서 사용)
+        this.emit('tool_call', {
+          name: call.name,
+          args: call.args,
+          result: result,
+        });
+
+        // 결과 패키징
+        functionResponses.push({
+          id: call.id,
+          name: call.name,
+          response: { result: result } // 함수의 리턴값을 Gemini에게 전달
+        });
       }
-
-      // Tool Call 이벤트 emit (UI에서 사용)
-      this.emit('tool_call', {
-        name: call.name,
-        args: call.args,
-        result: result,
-      });
-
-      // 결과 패키징
-      functionResponses.push({
-        id: call.id,
-        name: call.name,
-        response: { result: result } // 함수의 리턴값을 Gemini에게 전달
-      });
+    } catch (e) {
+      console.error("Error processing tool calls:", e);
+      this.emit('log', `❌ Tool Error: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     // Send tool response

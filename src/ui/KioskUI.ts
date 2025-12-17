@@ -28,6 +28,9 @@ export class KioskUI {
     // Subscribe to Cart Changes
     this.cartManager.on('cartUpdated', (summary: CartSummary) => {
       this.renderCart(summary);
+      if (this.currentModalItem) {
+        this.renderModalOptions(); // Update modal if open
+      }
     });
   }
 
@@ -261,7 +264,7 @@ export class KioskUI {
   // User request: "음료 선택이 안됐을 때 x를 선택하면 담기 취소 안내"
   // Actually, since we already added to cart in handleItemClick, we should remove it if the user cancels BEFORE confirming?
   // Or checking if it's "valid" (no pending required options).
-  private closeModal(checkPending: boolean = false) {
+  public closeModal(checkPending: boolean = false) {
     if (checkPending && this.currentModalItem) {
       const pending = this.cartManager.getPendingRequiredOptions(this.currentModalItem.cartItemId);
       // If there are pending requirements and user clicked Close, assume cancellation

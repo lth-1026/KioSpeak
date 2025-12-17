@@ -100,6 +100,35 @@ async function main() {
   // Setup Gemini & Audio Events
   geminiClient.on('user_message', (text) => addLog(text, 'user'));
   geminiClient.on('text_response', (text) => addLog(text, 'ai'));
+  geminiClient.on('log', (msg) => addLog(msg, 'info'));
+
+  geminiClient.on('tool_call', (data) => {
+    addLog(`Function: ${data.name}`, 'info');
+
+    // 음성으로 장바구니 담기 시: 필수 옵션이 남았을 때만 모달 띄우기
+    if (data.name === 'addToCart' && data.result?.success && data.result?.cartItemId) {
+      const cartItemId = data.result.cartItemId;
+      const pending = cartManager.getPendingRequiredOptions(cartItemId);
+
+      if (pending.length > 0) {
+        ui.reconfigureItem(cartItemId);
+      }
+    }
+
+    // 음성으로 옵션 선택 시:
+    if (data.name === 'selectOption' && data.result?.success && data.result?.cartItemId) {
+      const cartItemId = data.result.cartItemId;
+      const pending = cartManager.getPendingRequiredOptions(cartItemId);
+
+      if (pending.length > 0) {
+        // 필수 옵션이 남았거나 새로 생겼으면(예: 세트로 변경) 모달 띄우기
+        ui.reconfigureItem(cartItemId);
+      } else {
+        // 모든 필수 옵션이 충족되면 모달 닫기
+        ui.closeModal(false);
+      }
+    }
+  });
 
   audioRecorder.on('audio_data', (base64) => {
     if (isKioskRunning) geminiClient.sendAudioChunk(base64);
