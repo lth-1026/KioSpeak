@@ -96,6 +96,9 @@ async function main() {
 
   let isKioskRunning = false;
   let autoStartTimer: number | null = null;
+  let faceLostTimer: number | null = null;
+  const FACE_LOST_TIMEOUT_MS = 30000;
+
 
   // Setup Gemini & Audio Events
   geminiClient.on('user_message', (text) => addLog(text, 'user'));
@@ -160,7 +163,8 @@ async function main() {
     isKioskRunning = true;
 
     addLog(`Face Detected (${ageGroup}). Starting LLM...`, 'info');
-    visionModule.stopMonitoring(); // Pause vision to save resource or avoid noise
+    // visionModule.stopMonitoring(); // KEEP VISION RUNNING to detect face loss
+
 
     try {
       await geminiClient.connect('audio', ageGroup);
@@ -179,6 +183,33 @@ async function main() {
   function startMonitoringLogic() {
     if (visionStartFn) visionStartFn();
   }
+
+  function resetKiosk() {
+    addLog('Session Reset: 30s Face Lost Timeout', 'info');
+
+    // Stop LLM
+    geminiClient.disconnect();
+
+    // Clear Data
+    cartManager.clearCart();
+
+    // Reset UI
+    ui.closeModal(false);
+    ui.closePaymentModal();
+    // Reset to default category? Maybe not strictly required but good for reset.
+    // ui.selectCategory(originalCategoryId...?); 
+
+    // Reset State
+    isKioskRunning = false;
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = null;
+
+    // Resume Vision
+    // Vision is already running (we didn't stop it)
+    // startMonitoringLogic(); 
+    addLog('Kiosk Reset. Waiting for new customer...', 'info');
+  }
+
 
   // ============ Idle Timer ============
   let idleTimer: number | null = null;
@@ -212,26 +243,35 @@ async function main() {
 
 
   function handleFaceDetection(age: any) {
+    // If face detected again within 30s timeout, cancel the reset
+    if (faceLostTimer) {
+      clearTimeout(faceLostTimer);
+      faceLostTimer = null;
+      addLog('Face detected again. Reset cancelled.', 'info');
+    }
+
     if (isKioskRunning) return;
 
     if (!autoStartTimer) {
-      addLog(`Face detected! Auto-starting in 1.5s...`, 'info');
-      autoStartTimer = window.setTimeout(() => {
-        startKiosk(age.ageGroup);
-        autoStartTimer = null;
-      }, 1500);
+      addLog(`Face detected! Starting immediately...`, 'info');
+      startKiosk(age.ageGroup);
     }
   }
+
 
   function handleFaceLost() {
-    if (isKioskRunning) return; // If running, we don't care if face lost (session active)
+    // If not running, nothing to reset (unless we want to cancel a pending start, but start is immediate now)
+    if (!isKioskRunning) return;
 
-    if (autoStartTimer) {
-      clearTimeout(autoStartTimer);
-      autoStartTimer = null;
-      addLog('Face lost. Auto-start cancelled.', 'info');
+    if (!faceLostTimer) {
+      addLog(`Face lost. Will reset in 30s...`, 'info');
+      faceLostTimer = window.setTimeout(() => {
+        resetKiosk();
+        faceLostTimer = null;
+      }, FACE_LOST_TIMEOUT_MS);
     }
   }
+
 
   // ============ UI Helpers ============
 
