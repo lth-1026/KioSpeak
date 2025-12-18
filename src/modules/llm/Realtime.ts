@@ -58,7 +58,7 @@ export class GeminiRealtimeClient extends EventEmitter {
   }
 
   async connect(mode: ConnectionMode = 'audio', ageGroup?: AgeGroup) {
-    const model = 'gemini-2.5-flash-native-audio-preview-09-2025';
+    const model = 'gemini-2.5-flash-native-audio-preview-12-2025';
 
     const tools = toolDefinitions;
 
