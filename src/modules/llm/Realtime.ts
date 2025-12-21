@@ -58,7 +58,7 @@ export class GeminiRealtimeClient extends EventEmitter {
   }
 
   async connect(mode: ConnectionMode = 'audio', ageGroup?: AgeGroup) {
-    const model = 'gemini-2.5-flash-native-audio-preview-09-2025';
+    const model = 'gemini-2.5-flash-native-audio-preview-12-2025';
 
     const tools = toolDefinitions;
 
@@ -229,7 +229,7 @@ export class GeminiRealtimeClient extends EventEmitter {
 
             if (paymentResult.success) {
               this.cartManager.clearCart();
-              result = { success: true, message: `결제가 완료되었습니다. 거래번호: ${paymentResult.transactionId}` };
+              result = { success: true, message: `결제가 완료되었습니다.` };
               this.emit('payment', { success: true, transactionId: paymentResult.transactionId });
             } else {
               result = { success: false, message: `결제에 실패했습니다. 사유: ${paymentResult.failureReason}` };
